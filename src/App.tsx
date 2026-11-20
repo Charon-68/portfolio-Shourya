@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Header } from './components/layout/Header';
 import { Loader } from './components/layout/Loader';
 import { MobileMenu } from './components/layout/MobileMenu';
@@ -10,6 +10,10 @@ import { CaseStudy } from './pages/CaseStudy';
 import { Journal, type JournalHandle } from './pages/Journal';
 import { NotFound } from './pages/NotFound';
 import { Hero } from './sections/Hero';
+import { About } from './sections/About';
+import { BeyondCode } from './sections/BeyondCode';
+import { Contact } from './sections/Contact';
+import { Experience } from './sections/Experience';
 import { WorkIndex } from './sections/WorkIndex';
 import { useValley } from './scene/useValley';
 
@@ -21,7 +25,6 @@ const isChapter = (id: string): id is ChapterId => chapters.some((c) => c.id ===
 const projectWaypoint = (slug: string) =>
   chapterById.work.waypoint + Math.max(0, projects.findIndex((p) => p.slug === slug)) * 0.012;
 
-const journalBodies = { work: <WorkIndex /> };
 
 export default function App() {
   const { introDone, setMode, flyTo } = useValley();
@@ -115,6 +118,17 @@ export default function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, path]);
+
+  const journalBodies = useMemo(
+    () => ({
+      work: <WorkIndex />,
+      experience: <Experience />,
+      about: <About />,
+      beyond: <BeyondCode />,
+      contact: <Contact onHome={() => navRef.current.goHome()} />,
+    }),
+    [],
+  );
 
   const backToWork = useCallback(() => {
     const depth = caseDepth();

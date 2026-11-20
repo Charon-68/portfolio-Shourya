@@ -23,3 +23,4 @@ Placeholders in `src/content/*.ts` refer to these IDs. Remove a row once its con
 | C17 | Team size and your role for each project (solo or team; what you owned) | "My contribution" sections | Resume bullets used as written ("Built…", "Designed…") |
 | C18 | Traffic MOT: any measured numbers (fps, MOTA/IDF1, speed-estimation error) | Results | Qualitative "real-time inference" note |
 | C19 | Neural Retrieval: the Recall@K / MRR / MAP values | Results | Metric names only |
+| C20 | Approve the first-person About bio (it restates resume facts in your voice) | About | Shown as drafted |

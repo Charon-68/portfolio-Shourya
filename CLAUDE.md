@@ -140,6 +140,12 @@ They run in forward order, so scrolling down flies forward. The engine starts at
 - Projects live in `src/content/projects.ts`, and all copy follows the content rules. Diagrams live in `src/diagrams/projects.tsx`; their data flow awaits confirmation (C16).
 - `vercel.json` rewrites every route to `index.html`.
 
+**Chapters (M7).**
+- `src/content/experience.ts` holds roles and timeline dates; Present = `TIMELINE_NOW`, which must be updated as time passes.
+- `src/content/about.ts` holds the bio, education, achievements, honours, certifications and Beyond Code.
+- `src/content/skills.ts` holds the arsenal. Its evidence is derived by matching project and role stacks, never hand-asserted.
+- The sections are `Experience` (concurrency timeline plus entries), `About` (bio, achievements, arsenal map), `BeyondCode` and `Contact`. Contact only renders links that have been supplied.
+
 **Embedded preview panes** may report `document.hidden` while on screen. The rAF loop therefore doesn't trust `document.hidden`; only the software-GL timer loop pauses on it.
 
 ## Content rules (hard)
