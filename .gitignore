@@ -10,3 +10,6 @@ coverage/
 # design references (large, not shipped, rights unknown)
 design/references/
 .claude/settings.local.json
+
+# engine captures (scratch)
+design/captures/

@@ -34,7 +34,9 @@ const nameLine: Variants = {
 export function Hero({ active, intent, onExplore }: HeroProps) {
   const { introDone, startHover, stopHover, status } = useValley();
   const reduce = useReducedMotion();
-  const shown = introDone || !!reduce;
+  // Reveal with the valley's first frame (the copy fades in during the swoop, not after it):
+  // the tagline is the page's LCP element, so waiting for introDone cost ~1.4 s of render delay.
+  const shown = status !== 'loading' || introDone || !!reduce;
 
   return (
     <section

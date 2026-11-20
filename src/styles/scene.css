@@ -19,33 +19,19 @@
 }
 
 /*
- * No-WebGL / init-failure fallback: a still, golden-hour dusk built from gradients
- * (no image bytes). TODO(M8): layer a poster.webp captured from the engine on top.
+ * No-WebGL / init-failure fallback: a still frame captured from the engine itself
+ * (public/poster.webp, ~110 KB, home waypoint) over the gradient dusk, which also shows
+ * while the image loads. Only requested when the fallback renders.
  */
 .valley-fallback {
   position: absolute;
   inset: 0;
   background:
+    url("/poster.webp") center / cover no-repeat,
     radial-gradient(120% 60% at 72% 104%, rgb(234 181 96 / 0.22) 0%, rgb(234 181 96 / 0) 60%),
     radial-gradient(90% 50% at 18% 100%, rgb(217 87 58 / 0.12) 0%, rgb(217 87 58 / 0) 65%),
     radial-gradient(140% 70% at 50% 120%, #1b231d 0%, rgb(27 35 29 / 0) 70%),
     linear-gradient(180deg, #040705 0%, #070b08 55%, #0c120d 100%);
-}
-
-.valley-fallback::after {
-  /* faint pollen field */
-  content: "";
-  position: absolute;
-  inset: 45% 0 0;
-  background-image:
-    radial-gradient(1.5px 1.5px at 12% 30%, rgb(234 181 96 / 0.7), transparent),
-    radial-gradient(1px 1px at 28% 62%, rgb(245 239 226 / 0.5), transparent),
-    radial-gradient(1.5px 1.5px at 47% 44%, rgb(234 181 96 / 0.6), transparent),
-    radial-gradient(1px 1px at 63% 78%, rgb(245 239 226 / 0.45), transparent),
-    radial-gradient(2px 2px at 81% 36%, rgb(234 181 96 / 0.55), transparent),
-    radial-gradient(1px 1px at 92% 70%, rgb(217 87 58 / 0.6), transparent);
-  background-size: 340px 220px;
-  opacity: 0.8;
 }
 
 .loader {

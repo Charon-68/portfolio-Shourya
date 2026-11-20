@@ -146,6 +146,26 @@ They run in forward order, so scrolling down flies forward. The engine starts at
 - `src/content/skills.ts` holds the arsenal. Its evidence is derived by matching project and role stacks, never hand-asserted.
 - The sections are `Experience` (concurrency timeline plus entries), `About` (bio, achievements, arsenal map), `BeyondCode` and `Contact`. Contact only renders links that have been supplied.
 
+**SEO, social and performance (M8).**
+
+*Build plugins* (`config/plugins.ts`):
+- write `dist/work/<slug>/index.html` with per-route title, description, OG and Twitter tags, plus a `<noscript>` summary;
+- write `robots.txt`;
+- write `sitemap.xml` and canonical URLs only when `SITE_URL` is set at build time. That needs the domain (C15), e.g. `SITE_URL=https://example.com npm run build`.
+
+*Poster and OG images*:
+- `public/poster.webp` (no-WebGL fallback) and `public/og.jpg` (1200×630) were captured from the live engine at `HOME_WAYPOINT`.
+- To recapture, run dev, POST canvas data URLs to `/__capture?name=…png` (dev-only middleware; files land in `design/captures/`), then optimise into `public/` with ImageMagick.
+
+*Software rendering:* software WebGL (SwiftShader/llvmpipe) gets the poster fallback by default; `?quality=low` forces the engine.
+
+*Lazy loading:* chapter bodies (`src/sections/bodies.tsx`) and `CaseStudy` are lazy chunks, prefetched after the intro. The journal re-applies its scroll target once bodies mount.
+
+*Lighthouse 13.6* (headless, no GPU):
+- Accessibility, Best Practices and SEO all score 100, with CLS 0.
+- The Performance score (~60–70) is dominated by software compositing and WebGL in a GPU-less headless browser; don't chase it there.
+- Re-measure on real hardware or with PageSpeed Insights after deploy.
+
 **Embedded preview panes** may report `document.hidden` while on screen. The rAF loop therefore doesn't trust `document.hidden`; only the software-GL timer loop pauses on it.
 
 ## Content rules (hard)

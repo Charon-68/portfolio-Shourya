@@ -16,10 +16,23 @@
     />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <!-- TODO(M8): og:image, canonical URL, JSON-LD Person -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!--seo-->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Shourya Saxena",
+        "description": "Software engineering, applied machine learning and systems.",
+        "affiliation": { "@type": "CollegeOrUniversity", "name": "Indian Institute of Technology Bombay" },
+        "alumniOf": { "@type": "CollegeOrUniversity", "name": "Indian Institute of Technology Bombay" },
+        "knowsAbout": ["Software engineering", "Machine learning", "Retrieval-augmented generation", "Computer vision", "Distributed data pipelines"]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <!--noscript-->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

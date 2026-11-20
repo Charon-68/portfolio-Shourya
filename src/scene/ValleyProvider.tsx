@@ -44,8 +44,13 @@ export function ValleyProvider({ children }: { children: ReactNode }) {
 
     const caps = probeWebGL();
     // `?webgl=off` forces the static fallback (QA for browsers without WebGL).
-    const forcedOff = new URLSearchParams(window.location.search).get('webgl') === 'off';
-    if (!caps.webgl || forcedOff) {
+    const params = new URLSearchParams(window.location.search);
+    const forcedOff = params.get('webgl') === 'off';
+    // Software rasterisers (SwiftShader, llvmpipe — VMs, remote desktops, GPU-less machines) take
+    // seconds per frame on this scene and freeze the page. They get the captured poster instead;
+    // an explicit ?quality=… still forces the engine (and its throttled software path) for testing.
+    const softwareFallback = caps.software && !params.has('quality');
+    if (!caps.webgl || forcedOff || softwareFallback) {
       fail('WebGL unavailable');
       return;
     }
@@ -85,6 +90,14 @@ export function ValleyProvider({ children }: { children: ReactNode }) {
       engineRef.current = null;
     };
   }, []);
+
+  // The UI reveals when the intro swoop is ~92% done. On a slow device the swoop is slow too
+  // (it advances per rendered frame), so never keep the interface hidden more than 2.5 s.
+  useEffect(() => {
+    if (status !== 'ready' || introDone) return;
+    const t = window.setTimeout(() => setIntroDone(true), 2500);
+    return () => window.clearTimeout(t);
+  }, [status, introDone]);
 
   const toggleSound = useCallback(() => {
     const store = engineRef.current?.audioStore;

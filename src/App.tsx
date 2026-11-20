@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Header } from './components/layout/Header';
 import { Loader } from './components/layout/Loader';
 import { MobileMenu } from './components/layout/MobileMenu';
@@ -6,18 +6,14 @@ import { chapterById, chapters, HOME_WAYPOINT, type ChapterId } from './content/
 import { projectBySlug, projects } from './content/projects';
 import { caseDepth, matchProject, navigate, usePath } from './lib/router';
 import { useScrollIntent } from './lib/useScrollIntent';
-import { CaseStudy } from './pages/CaseStudy';
-import { Journal, type JournalHandle } from './pages/Journal';
+import { Journal, prefetchChapterBodies, type JournalHandle } from './pages/Journal';
 import { NotFound } from './pages/NotFound';
 import { Hero } from './sections/Hero';
-import { About } from './sections/About';
-import { BeyondCode } from './sections/BeyondCode';
-import { Contact } from './sections/Contact';
-import { Experience } from './sections/Experience';
-import { WorkIndex } from './sections/WorkIndex';
 import { useValley } from './scene/useValley';
 
 type View = 'hero' | 'journal';
+
+const CaseStudy = lazy(() => import('./pages/CaseStudy').then((m) => ({ default: m.CaseStudy })));
 
 const isChapter = (id: string): id is ChapterId => chapters.some((c) => c.id === id);
 
@@ -56,11 +52,10 @@ export default function App() {
   );
 
   /** Move focus to an element without scrolling (view changes would otherwise drop focus on <body>). */
-  // Two frames: the target view must have committed and dropped `inert` before it can take focus.
+  // Short timeout (not rAF, which slow/background contexts throttle): by then React has committed
+  // the new view and dropped `inert`, so the target can take focus.
   const focusSoon = (selector: string) =>
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => document.querySelector<HTMLElement>(selector)?.focus({ preventScroll: true })),
-    );
+    window.setTimeout(() => document.querySelector<HTMLElement>(selector)?.focus({ preventScroll: true }), 40);
 
   const leaveCase = () => {
     if (matchProject(window.location.pathname) || window.location.pathname !== '/') navigate('/');
@@ -119,16 +114,17 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, path]);
 
-  const journalBodies = useMemo(
-    () => ({
-      work: <WorkIndex />,
-      experience: <Experience />,
-      about: <About />,
-      beyond: <BeyondCode />,
-      contact: <Contact onHome={() => navRef.current.goHome()} />,
-    }),
-    [],
-  );
+  // Once the valley has rendered, warm the reading chunks in the background.
+  useEffect(() => {
+    if (!introDone) return;
+    const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
+    const run = () => {
+      prefetchChapterBodies();
+      void import('./pages/CaseStudy');
+    };
+    if (idle) idle(run);
+    else window.setTimeout(run, 1200);
+  }, [introDone]);
 
   const backToWork = useCallback(() => {
     const depth = caseDepth();
@@ -252,17 +248,7 @@ export default function App() {
         Skip to content
       </a>
 
-      <Hero active={view === 'hero' && !onCase && !isUnknownPath && !menuOpen} intent={heroIntent} onExplore={() => openChapter('work')} />
-      <Journal
-        ref={journalRef}
-        open={view === 'journal' && !onCase && !isUnknownPath}
-        onActiveChange={onActiveChange}
-        onReturnHome={goHome}
-        bodies={journalBodies}
-      />
-      {project && <CaseStudy key={project.slug} project={project} onBack={backToWork} />}
-      {((slug && !project) || isUnknownPath) && <NotFound onHome={goHome} onWork={() => openChapter('work')} />}
-
+      {/* Header first in the DOM so keyboard order is skip link → nav → content. */}
       <Header
         visible={introDone}
         view={onCase || view === 'journal' ? 'journal' : 'hero'}
@@ -272,6 +258,20 @@ export default function App() {
         onChapter={openChapter}
         onToggleMenu={toggleMenu}
       />
+      <Hero active={view === 'hero' && !onCase && !isUnknownPath && !menuOpen} intent={heroIntent} onExplore={() => openChapter('work')} />
+      <Journal
+        ref={journalRef}
+        open={view === 'journal' && !onCase && !isUnknownPath}
+        onActiveChange={onActiveChange}
+        onReturnHome={goHome}
+      />
+      {project && (
+        <Suspense fallback={null}>
+          <CaseStudy key={project.slug} project={project} onBack={backToWork} />
+        </Suspense>
+      )}
+      {((slug && !project) || isUnknownPath) && <NotFound onHome={goHome} onWork={() => openChapter('work')} />}
+
       <MobileMenu open={menuOpen} onClose={closeMenu} onHome={goHome} onChapter={openChapter} />
 
       <Loader />

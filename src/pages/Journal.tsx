@@ -6,9 +6,8 @@
  * told, which moves the camera to that chapter's waypoint and syncs the URL hash.
  * Native scroll only — the engine ignores wheel/touch outside explore mode.
  */
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type ReactNode } from 'react';
+import { forwardRef, lazy, Suspense, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { TodoMark } from '@/components/ui/TodoMark';
 import { chapters, type ChapterId } from '@/content/chapters';
 import { cx } from '@/lib/cx';
 import { useScrollIntent } from '@/lib/useScrollIntent';
@@ -22,17 +21,11 @@ type JournalProps = {
   open: boolean;
   onActiveChange: (id: ChapterId) => void;
   onReturnHome: () => void;
-  /** Chapter bodies, filled in M5–M7. */
-  bodies?: Partial<Record<ChapterId, ReactNode>>;
 };
 
-const pendingMilestone: Record<ChapterId, string> = {
-  work: 'project case studies (M5–M6)',
-  experience: 'experience timeline (M7)',
-  about: 'about, achievements and technical arsenal (M7)',
-  beyond: 'beyond code (M7)',
-  contact: 'contact links (M7)',
-};
+const ChapterBody = lazy(() => import('@/sections/bodies'));
+/** Warm the chapter-body chunk without rendering it (called once the valley is ready). */
+export const prefetchChapterBodies = () => void import('@/sections/bodies');
 
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -40,18 +33,27 @@ const smoothstep = (a: number, b: number, x: number) => {
 };
 
 export const Journal = forwardRef<JournalHandle, JournalProps>(function Journal(
-  { open, onActiveChange, onReturnHome, bodies },
+  { open, onActiveChange, onReturnHome },
   ref,
 ) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const scrimRef = useRef<HTMLDivElement>(null);
   const [returnProgress, setReturnProgress] = useState(0);
   const activeRef = useRef<ChapterId | null>(null);
+  /** Bodies mount on first open only — the hero never pays for them. */
+  const [everOpened, setEverOpened] = useState(open);
+  useEffect(() => {
+    if (open) setEverOpened(true);
+  }, [open]);
+  /** Last scroll target: re-applied once lazily-loaded bodies change the layout above it. */
+  const pendingTarget = useRef<ChapterId | null>(null);
+  const bodiesSettled = useRef(false);
   const onActiveRef = useRef(onActiveChange);
   onActiveRef.current = onActiveChange;
 
   useImperativeHandle(ref, () => ({
     scrollTo: (id, smooth = true) => {
+      if (!bodiesSettled.current) pendingTarget.current = id;
       const scroller = scrollerRef.current;
       const el = scroller?.querySelector<HTMLElement>(`#${id}`);
       if (!el || !scroller) return;
@@ -120,6 +122,26 @@ export const Journal = forwardRef<JournalHandle, JournalProps>(function Journal(
     onTrigger: onReturnHome,
   });
 
+  const onBodiesReady = useCallback(() => {
+    if (bodiesSettled.current) return;
+    bodiesSettled.current = true;
+    const id = pendingTarget.current;
+    pendingTarget.current = null;
+    if (!id || id === 'work') return; // Work is first — nothing above it moved
+    requestAnimationFrame(() => {
+      const scroller = scrollerRef.current;
+      const el = scroller?.querySelector<HTMLElement>(`#${id}`);
+      if (scroller && el) scroller.scrollTo({ top: el.offsetTop, behavior: 'auto' });
+    });
+  }, []);
+
+  const body = (id: ChapterId) =>
+    everOpened ? (
+      <Suspense fallback={<div className="min-h-[40vh]" aria-busy="true" />}>
+        <ChapterBody chapter={id} onHome={onReturnHome} onReady={onBodiesReady} />
+      </Suspense>
+    ) : null;
+
   return (
     <div
       className={cx(
@@ -170,11 +192,11 @@ export const Journal = forwardRef<JournalHandle, JournalProps>(function Journal(
                   )}
                 >
                   <SectionHeading index={c.index} eyebrow={c.label} id={`${c.id}-title`} title={c.title} lead={c.lead} tone="opener" />
-                  {isContact && <div className="mt-12">{bodies?.contact ?? <TodoMark id="M-chapter">{pendingMilestone.contact}</TodoMark>}</div>}
+                  {isContact && <div className="mt-12">{body('contact')}</div>}
                 </div>
                 {!isContact && (
                   <div data-body className="border-t hairline pb-[var(--section-gap)] pt-16">
-                    {bodies?.[c.id] ?? <TodoMark id="M-chapter">{pendingMilestone[c.id]}</TodoMark>}
+                    {body(c.id)}
                   </div>
                 )}
               </section>
