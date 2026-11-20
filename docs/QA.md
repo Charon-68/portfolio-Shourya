@@ -52,3 +52,20 @@ These are listed in `docs/CONTENT-TODO.md`:
 - **C1–C3:** email, LinkedIn and GitHub.
 - **C4:** the redacted resume PDF.
 - **C15:** the domain.
+
+## Deployed (2026-11-20)
+
+The site is live at **https://shouryasaxena.vercel.app** (Vercel project `shouryasaxena`).
+
+| Check | Result |
+|---|---|
+| Public access | ✅ HTTP 200; no deployment protection on the production domain |
+| Pages and files | ✅ `/` and `/work/<slug>` serve prerendered HTML with the project's title, canonical URL and absolute `og:image`. `/work/nope` returns a real 404. The resume PDF, OG image, `sitemap.xml` and `robots.txt` are all served |
+| Security headers | ✅ `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY` and `Permissions-Policy` are present |
+| Live render | ✅ The engine loads (173 KB transferred), the valley renders, and the console is clean |
+
+Still to do by hand:
+- PageSpeed Insights;
+- a real phone;
+- a LinkedIn link preview (Post Inspector).
+
