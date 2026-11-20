@@ -9,7 +9,18 @@
 import type { MaybeLink } from './profile';
 
 export type ProjectTier = 'flagship' | 'selected' | 'field';
-export type DiagramId = 'graphrag' | 'vlm' | 'mot' | 'coding-duel' | 'deep-rl';
+export type DiagramId =
+  | 'graphrag'
+  | 'vlm'
+  | 'mot'
+  | 'coding-duel'
+  | 'deep-rl'
+  | 'sih-tariff'
+  | 'neural-retrieval'
+  | 'fatigue'
+  | 'forensics'
+  | 'ugac'
+  | 'airship';
 
 export type Metric = {
   /** Exact value as on the resume. */
@@ -326,7 +337,7 @@ export const projects: Project[] = [
     problem:
       'Policy makers need to see how tariff changes might play out before making them. That calls for forecasting models over long trade histories and a way to compare many scenarios side by side.',
     architecture: {
-      diagram: null,
+      diagram: 'sih-tariff',
       title: 'Forecasting and scenario modelling',
       caption: 'SARIMAX, XGBoost and LSTM models forecast macroeconomic outcomes; a dashboard models 100+ tariff scenarios on 15+ years of past trade data.',
     },
@@ -367,7 +378,7 @@ export const projects: Project[] = [
     problem:
       'Fine-tuning language models efficiently calls for parameter-efficient methods and memory-saving techniques, and retrieval quality needs to be measured with standard ranking metrics rather than assumed.',
     architecture: {
-      diagram: null,
+      diagram: 'neural-retrieval',
       title: 'Fine-tuning and semantic retrieval',
       caption: 'Hugging Face Transformers with PEFT (LoRA/QLoRA) for fine-tuning; FAISS retrieval with Cross-Encoder reranking; MCP and RAG integration.',
     },
@@ -405,7 +416,7 @@ export const projects: Project[] = [
     problem:
       'With many correlated input features, a model can look accurate while learning from leakage. The work was to prune the feature space defensibly and then build a model that generalises better than standard baselines.',
     architecture: {
-      diagram: null,
+      diagram: 'fatigue',
       title: 'Feature pruning and mixture of experts',
       caption: 'VIF filtering and SHAP analysis reduce the feature space; a mixture of Gradient Boosting and Random Forest experts is validated with 5-fold cross-validation.',
     },
@@ -447,7 +458,7 @@ export const projects: Project[] = [
     problem:
       'Detectors that work on known generators often fail on new ones and on re-compressed images. The aim was robust detection across generators and under compression, cheap enough to run on CPU.',
     architecture: {
-      diagram: null,
+      diagram: 'forensics',
       title: 'Features to verdict',
       caption: 'Image metadata and CLIP features feed a LightGBM classifier, served through a Flask API for CPU inference and validated with pytest.',
     },
@@ -491,7 +502,7 @@ export const projects: Project[] = [
     problem:
       'Matching thousands of students to projects needs one place to browse, apply, rank preferences and manage applications — with OAuth sign-in, deployed on Institute Gymkhana servers.',
     architecture: {
-      diagram: null,
+      diagram: 'ugac',
       title: 'Next.js frontend, Django REST backend',
       caption: 'A React/Next.js frontend with Tailwind CSS talks to a Django REST Framework backend over REST APIs with CORS and OAuth, deployed on Institute Gymkhana servers.',
     },
@@ -530,7 +541,7 @@ export const projects: Project[] = [
     problem:
       'A solar airship’s best route depends on weather: wind fields, cloud cover and solar flux change along the way and act as dynamic obstacles. Planning has to weigh them, not just distance.',
     architecture: {
-      diagram: null,
+      diagram: 'airship',
       title: 'Weather-aware path planning',
       caption: 'GRIB meteorological data (wind fields, cloud cover, solar flux) becomes dynamic obstacle constraints for a cost-function-driven planner using A* and Dijkstra’s algorithm.',
     },

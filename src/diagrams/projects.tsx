@@ -158,12 +158,200 @@ function DeepRl({ className, minWidth }: DiagramProps) {
   );
 }
 
+function SihTariff({ className, minWidth }: DiagramProps) {
+  return (
+    <Diagram
+      className={className}
+      minWidth={minWidth}
+      height={320}
+      label="AI Tariff Simulator architecture. Fifteen-plus years of historical trade data feed three forecasting models — SARIMAX, XGBoost and LSTM — whose macroeconomic forecasts drive a deployed policy analytics dashboard that models more than 100 tariff scenarios."
+    >
+      <DNode x={20} y={132} w={160} label="Trade data" sub="15+ years · historical" tone="muted" order={0} />
+      <DGroup x={230} y={22} w={260} h={276} label="Forecasting models" order={1} />
+      <DNode x={255} y={50} w={210} label="SARIMAX" sub="seasonal time series" order={1} />
+      <DNode x={255} y={132} w={210} label="XGBoost" sub="gradient boosting" order={2} />
+      <DNode x={255} y={214} w={210} label="LSTM" sub="recurrent network" order={3} />
+      <DNode x={560} y={132} w={190} label="Scenario forecasts" sub="macroeconomic" order={4} />
+      <DNode x={790} y={122} w={150} h={76} label="Policy dashboard" sub="100+ tariff scenarios" tone="accent" order={5} />
+      <DEdge d="M180 160 C205 160 205 78 253 78" order={1} />
+      <DEdge d="M180 160 H253" order={2} />
+      <DEdge d="M180 160 C205 160 205 242 253 242" order={3} />
+      <DEdge d="M465 78 C510 78 510 160 558 160" tone="accent" order={4} />
+      <DEdge d="M465 160 H558" tone="accent" order={4} />
+      <DEdge d="M465 242 C510 242 510 160 558 160" tone="accent" order={4} />
+      <DEdge d="M750 160 H788" tone="accent" order={5} />
+    </Diagram>
+  );
+}
+
+function NeuralRetrieval({ className, minWidth }: DiagramProps) {
+  return (
+    <Diagram
+      className={className}
+      minWidth={minWidth}
+      height={360}
+      label="Neural Retrieval framework. Top lane, fine-tuning: Hugging Face Transformers models are adapted with PEFT using LoRA and QLoRA, trained with Flash Attention and gradient checkpointing, for embeddings, text classification and LLM fine-tuning. Bottom lane, retrieval: a query is embedded, searched in a FAISS index, reranked by a Cross-Encoder and passed into RAG with MCP, and the pipeline is evaluated with Recall@K, MRR and MAP."
+    >
+      <DGroup x={10} y={22} w={930} h={140} label="Fine-tuning" order={0} />
+      <DNode x={30} y={64} w={190} label="HF Transformers" sub="pretrained models" tone="muted" order={0} />
+      <DNode x={265} y={64} w={190} label="PEFT" sub="LoRA · QLoRA" tone="accent" order={1} />
+      <DNode x={500} y={64} w={200} label="Efficient training" sub="Flash Attention · checkpointing" order={2} />
+      <DNode x={745} y={64} w={175} label="Fine-tuned models" sub="embedding · classification" order={3} />
+      <DEdge d="M220 92 H263" order={1} />
+      <DEdge d="M455 92 H498" tone="accent" order={2} />
+      <DEdge d="M700 92 H743" order={3} />
+
+      <DGroup x={10} y={196} w={930} h={150} label="Retrieval" order={3} />
+      <DNode x={30} y={244} w={130} label="Query" tone="muted" order={3} />
+      <DNode x={200} y={244} w={150} label="FAISS" sub="semantic search" order={4} />
+      <DNode x={390} y={244} w={170} label="Cross-Encoder" sub="reranking" tone="accent" order={5} />
+      <DNode x={600} y={244} w={130} label="RAG · MCP" sub="generation" order={6} />
+      <DNode x={770} y={244} w={150} label="Evaluation" sub="Recall@K · MRR · MAP" tone="accent" order={7} />
+      <DEdge d="M160 272 H198" order={4} />
+      <DEdge d="M350 272 H388" tone="accent" order={5} />
+      <DEdge d="M560 272 H598" order={6} />
+      <DEdge d="M730 272 H768" order={7} />
+      <DEdge d="M832 120 C832 180 275 180 275 242" dashed order={4} label="embeddings" labelAt={{ x: 560, y: 174 }} />
+    </Diagram>
+  );
+}
+
+function Fatigue({ className, minWidth }: DiagramProps) {
+  return (
+    <Diagram
+      className={className}
+      minWidth={minWidth}
+      height={330}
+      label="Fatigue Strength Predictor pipeline. Input data with 26 features is filtered with VIF and analysed with SHAP to remove data leakage, leaving 16 (NC) and 7 (C) features. A mixture of experts — Gradient Boosting and Random Forest — is compared against Ridge and MLP baselines, validated with 5-fold cross-validation to R-squared 0.973 on holdout data, and deployed as a Streamlit application."
+    >
+      <DNode x={20} y={130} w={130} label="Input data" sub="26 features" tone="muted" order={0} />
+      <DGroup x={180} y={60} w={200} h={200} label="Leakage removal" order={1} />
+      <DNode x={200} y={90} w={160} label="VIF filtering" sub="multicollinearity" order={1} />
+      <DNode x={200} y={180} w={160} label="SHAP analysis" sub="attribution" order={2} />
+      <DNode x={410} y={130} w={130} label="Features" sub="16 (NC) · 7 (C)" tone="accent" order={3} />
+      <DGroup x={568} y={22} w={204} h={200} label="Mixture of experts" order={4} />
+      <DNode x={584} y={52} w={172} label="Gradient Boosting" order={4} />
+      <DNode x={584} y={142} w={172} label="Random Forest" order={4} />
+      <DNode x={584} y={250} w={172} label="Ridge · MLP" sub="baselines" tone="muted" order={4} />
+      <DNode x={790} y={60} w={150} label="R² = 0.973" sub="holdout · 5-fold CV" tone="accent" order={6} />
+      <DNode x={790} y={170} w={150} label="Streamlit app" sub="interactive" order={7} />
+      <DEdge d="M150 158 C168 158 168 118 198 118" order={1} />
+      <DEdge d="M280 146 V178" order={2} />
+      <DEdge d="M360 208 C385 208 385 158 408 158" order={3} />
+      <DEdge d="M540 158 C556 158 556 80 582 80" tone="accent" order={4} />
+      <DEdge d="M540 158 C556 158 556 170 582 170" tone="accent" order={4} />
+      <DEdge d="M540 158 C556 158 556 278 582 278" dashed order={5} />
+      <DEdge d="M772 120 C780 120 780 88 788 88" tone="accent" order={6} />
+      <DEdge d="M865 116 V168" order={7} />
+    </Diagram>
+  );
+}
+
+function Forensics({ className, minWidth }: DiagramProps) {
+  return (
+    <Diagram
+      className={className}
+      minWidth={minWidth}
+      height={330}
+      label="Cross-Generator AI Image Forensics architecture. A LightGBM classifier is trained on 1,700+ images from 10 generative models. At inference, an image's metadata and CLIP features are extracted and scored by LightGBM inside a sub-second Flask API running on CPU, validated with pytest; it reached 0.90 out-of-distribution AUROC and 0.87 under JPEG-50 compression."
+    >
+      <DNode x={20} y={30} w={200} label="Training set" sub="1,700+ images · 10 generators" tone="muted" order={0} />
+      <DNode x={20} y={180} w={130} label="Image" tone="muted" order={1} />
+      <DGroup x={185} y={120} w={570} h={190} label="Flask API · CPU inference · pytest" order={1} />
+      <DNode x={210} y={150} w={170} label="Image metadata" order={2} />
+      <DNode x={210} y={240} w={170} label="CLIP features" sub="embedding" order={2} />
+      <DNode x={440} y={180} w={150} label="LightGBM" sub="classifier" tone="accent" order={3} />
+      <DNode x={630} y={180} w={110} label="Verdict" sub="sub-second" order={4} />
+      <DNode x={790} y={150} w={150} label="OOD AUROC" sub="0.71 → 0.90" tone="accent" order={5} />
+      <DNode x={790} y={240} w={150} label="JPEG-50" sub="AUROC 0.87" order={5} />
+      <DEdge d="M220 58 C430 58 515 90 515 178" dashed order={1} label="train" labelAt={{ x: 400, y: 50 }} />
+      <DEdge d="M150 208 C175 208 175 178 208 178" order={2} />
+      <DEdge d="M150 208 C175 208 175 268 208 268" order={2} />
+      <DEdge d="M380 178 C410 178 410 208 438 208" tone="accent" order={3} />
+      <DEdge d="M380 268 C410 268 410 208 438 208" tone="accent" order={3} />
+      <DEdge d="M590 208 H628" tone="accent" order={4} />
+      <DEdge d="M740 208 C765 208 765 178 788 178" dashed arrow={false} order={5} />
+      <DEdge d="M740 208 C765 208 765 268 788 268" dashed arrow={false} order={5} />
+    </Diagram>
+  );
+}
+
+function Ugac({ className, minWidth }: DiagramProps) {
+  return (
+    <Diagram
+      className={className}
+      minWidth={minWidth}
+      height={340}
+      label="UGAC Project Allocation Platform architecture. Undergraduates use a React and Next.js frontend styled with Tailwind CSS for SOP uploads, preference ranking, global filtering and application management. It talks over REST APIs with CORS to a Django REST Framework backend using MVT architecture, OAuth authentication and a SQL database, all deployed on Institute Gymkhana servers."
+    >
+      <DNode x={20} y={140} w={130} label="Students" sub="6,000+ UGs" tone="muted" order={0} />
+      <DGroup x={185} y={22} w={755} h={300} label="Institute Gymkhana servers" order={1} />
+      <DNode x={210} y={60} w={230} label="Next.js · React" sub="Tailwind CSS" tone="accent" order={1} />
+      <DGroup x={210} y={160} w={230} h={120} label="Student features" order={2} />
+      <text x={325} y={200} textAnchor="middle" fontSize={12} fill="var(--ink-1)">SOP uploads</text>
+      <text x={325} y={222} textAnchor="middle" fontSize={12} fill="var(--ink-1)">Preference ranking</text>
+      <text x={325} y={244} textAnchor="middle" fontSize={12} fill="var(--ink-1)">Global filtering</text>
+      <text x={325} y={266} textAnchor="middle" fontSize={12} fill="var(--ink-1)">Application management</text>
+      <DNode x={500} y={60} w={150} label="REST APIs" sub="CORS" order={3} />
+      <DNode x={710} y={60} w={210} label="Django REST" sub="Framework · MVT" tone="accent" order={4} />
+      <DNode x={710} y={160} w={210} label="OAuth" sub="authentication" order={5} />
+      <DNode x={710} y={250} w={210} label="SQL database" order={5} />
+      <DEdge d="M150 168 C175 168 175 88 208 88" order={1} />
+      <DEdge d="M325 116 V152" dashed arrow={false} order={2} />
+      <DEdge d="M440 88 H498" tone="accent" order={3} />
+      <DEdge d="M650 88 H708" tone="accent" order={4} />
+      <DEdge d="M815 116 V158" order={5} />
+      <DEdge d="M920 96 C934 96 934 270 922 270" order={5} />
+    </Diagram>
+  );
+}
+
+function Airship({ className, minWidth }: DiagramProps) {
+  return (
+    <Diagram
+      className={className}
+      minWidth={minWidth}
+      height={320}
+      label="Solar airship route planner. GRIB meteorological data provides wind fields, cloud cover and solar flux, which are modelled as dynamic obstacle constraints; a cost function over those constraints drives A* and Dijkstra's algorithm to produce a route for the 6,000+ km transatlantic autonomous flight challenge."
+    >
+      <DNode x={20} y={132} w={120} label="GRIB data" sub="meteorological" tone="muted" order={0} />
+      <DGroup x={170} y={22} w={200} h={276} label="Weather fields" order={1} />
+      <DNode x={190} y={50} w={160} label="Wind fields" order={1} />
+      <DNode x={190} y={132} w={160} label="Cloud cover" order={1} />
+      <DNode x={190} y={214} w={160} label="Solar flux" order={1} />
+      <DNode x={405} y={132} w={170} label="Dynamic obstacles" sub="constraints" order={2} />
+      <DNode x={610} y={132} w={130} label="Cost function" tone="accent" order={3} />
+      <DGroup x={770} y={60} w={170} h={200} label="Planner" order={4} />
+      <DNode x={790} y={90} w={130} label="A*" sub="heuristic search" tone="accent" order={4} />
+      <DNode x={790} y={180} w={130} label="Dijkstra" sub="shortest path" order={4} />
+      <DEdge d="M140 160 C162 160 162 78 188 78" order={1} />
+      <DEdge d="M140 160 H188" order={1} />
+      <DEdge d="M140 160 C162 160 162 242 188 242" order={1} />
+      <DEdge d="M350 78 C380 78 380 160 403 160" order={2} />
+      <DEdge d="M350 160 H403" order={2} />
+      <DEdge d="M350 242 C380 242 380 160 403 160" order={2} />
+      <DEdge d="M575 160 H608" tone="accent" order={3} />
+      <DEdge d="M740 160 C760 160 760 118 788 118" tone="accent" order={4} />
+      <DEdge d="M740 160 C760 160 760 208 788 208" order={4} />
+      <text x={855} y={296} textAnchor="middle" fontSize={10.5} fill="var(--ink-3)">
+        route · 6,000+ km challenge
+      </text>
+    </Diagram>
+  );
+}
+
 const registry: Record<DiagramId, (p: DiagramProps) => React.JSX.Element> = {
   graphrag: GraphRag,
   vlm: Vlm,
   mot: Mot,
   'coding-duel': CodingDuel,
   'deep-rl': DeepRl,
+  'sih-tariff': SihTariff,
+  'neural-retrieval': NeuralRetrieval,
+  fatigue: Fatigue,
+  forensics: Forensics,
+  ugac: Ugac,
+  airship: Airship,
 };
 
 export function ProjectDiagram({ id, className, minWidth }: { id: DiagramId; className?: string; minWidth?: number }) {
