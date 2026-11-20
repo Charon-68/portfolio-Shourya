@@ -11,6 +11,10 @@ npm run build      # typecheck + production build to dist/ (+ prerendered case-s
 npm run preview    # serve dist/ on :4173
 ```
 
+## Live
+
+**https://shouryasaxena.vercel.app** (source: github.com/Charon-68/portfolio-Shourya). Pushes to `main` deploy automatically once the repo is connected to the Vercel project; otherwise run `npx vercel deploy --prod`.
+
 ## Deploying to Vercel
 
 The repo is ready to import as-is: `vercel.json` sets the Vite framework, build command, output directory, clean URLs, SPA rewrites, cache headers for hashed assets, and baseline security headers.
