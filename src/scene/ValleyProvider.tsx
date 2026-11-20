@@ -97,6 +97,15 @@ export function ValleyProvider({ children }: { children: ReactNode }) {
     engineRef.current?.setMode(mode);
   }, []);
 
+  const flyTo = useCallback((p: number) => {
+    flyRef.current = p;
+    engineRef.current?.flyTo(p);
+  }, []);
+  const setPaused = useCallback((paused: boolean) => engineRef.current?.setPaused(paused), []);
+  const startHover = useCallback(() => engineRef.current?.startHoverTransition(), []);
+  const stopHover = useCallback(() => engineRef.current?.stopHoverTransition(), []);
+  const getTelemetry = useCallback(() => engineRef.current?.getTelemetry() ?? null, []);
+
   const value = useMemo<ValleyContextValue>(
     () => ({
       status,
@@ -106,16 +115,13 @@ export function ValleyProvider({ children }: { children: ReactNode }) {
       soundOn,
       toggleSound,
       setMode,
-      flyTo: (p) => {
-        flyRef.current = p;
-        engineRef.current?.flyTo(p);
-      },
-      setPaused: (paused) => engineRef.current?.setPaused(paused),
-      startHover: () => engineRef.current?.startHoverTransition(),
-      stopHover: () => engineRef.current?.stopHoverTransition(),
-      getTelemetry: () => engineRef.current?.getTelemetry() ?? null,
+      flyTo,
+      setPaused,
+      startHover,
+      stopHover,
+      getTelemetry,
     }),
-    [status, progress, introDone, tier, soundOn, toggleSound, setMode],
+    [status, progress, introDone, tier, soundOn, toggleSound, setMode, flyTo, setPaused, startHover, stopHover, getTelemetry],
   );
 
   return (

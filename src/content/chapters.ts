@@ -46,7 +46,7 @@ export const chapters: Chapter[] = [
     index: '03',
     label: 'About',
     title: 'About',
-    lead: 'B.Tech at IIT Bombay with a Minor in Computer Science and Engineering — and a habit of building the whole system.',
+    lead: 'B.Tech at IIT Bombay with a Minor in Computer Science and Engineering, working across software, machine learning and systems.',
   },
   {
     id: 'beyond',

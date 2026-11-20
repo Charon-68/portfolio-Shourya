@@ -66,7 +66,7 @@ export function Hero({ active, intent, onExplore }: HeroProps) {
           ))}
         </motion.p>
 
-        <h1 id="hero-title" className="mt-5 overflow-hidden pb-[0.04em] text-display-xl uppercase md:mt-7">
+        <h1 id="hero-title" tabIndex={-1} className="mt-5 overflow-hidden pb-[0.04em] text-display-xl uppercase outline-none md:mt-7">
           <motion.span variants={nameLine} className="block">
             {profile.name}
           </motion.span>

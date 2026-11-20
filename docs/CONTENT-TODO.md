@@ -19,3 +19,7 @@ Placeholders in `src/content/*.ts` refer to these IDs. Remove a row once its con
 | C13 | Tagline choice (blueprint §4.5) | Hero | Option 1 |
 | C14 | Optional photos (frisbee, mentoring) and project screenshots | Beyond Code, case studies | Typographic and diagram versions |
 | C15 | Domain name | Canonical URL, OG tags | `*.vercel.app` |
+| C16 | Confirm the data flow drawn in each architecture diagram (order of stages, which components connect) | Case-study figures | Diagrams show only the components named on the resume; flow is a best reading, flagged here |
+| C17 | Team size and your role for each project (solo or team; what you owned) | "My contribution" sections | Resume bullets used as written ("Built…", "Designed…") |
+| C18 | Traffic MOT: any measured numbers (fps, MOTA/IDF1, speed-estimation error) | Results | Qualitative "real-time inference" note |
+| C19 | Neural Retrieval: the Recall@K / MRR / MAP values | Results | Metric names only |

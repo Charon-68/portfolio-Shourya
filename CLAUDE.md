@@ -131,6 +131,15 @@ They run in forward order, so scrolling down flies forward. The engine starts at
   - the wordmark;
   - pulling up at the very top of the journal (900 px intent, with a hint).
 
+**Routing and case studies (M5).**
+- `src/lib/router.tsx` is a ~60-line History API router; React Router was deliberately not added.
+- `/work/:slug` renders `CaseStudy` over the journal. The journal stays mounted, so its scroll position survives.
+- `history.state.caseDepth` lets "All work" call `history.go(-depth)`.
+- The URL is the source of truth: a single location sync in `App.tsx` handles load, `popstate` and `hashchange`. It is registered in `useLayoutEffect` so it runs before React re-renders for the new URL (see the comment there).
+- Only that sync derives hero vs journal on `/`; the slug effect handles case pages and 404s only.
+- Projects live in `src/content/projects.ts`, and all copy follows the content rules. Diagrams live in `src/diagrams/projects.tsx`; their data flow awaits confirmation (C16).
+- `vercel.json` rewrites every route to `index.html`.
+
 **Embedded preview panes** may report `document.hidden` while on screen. The rAF loop therefore doesn't trust `document.hidden`; only the software-GL timer loop pauses on it.
 
 ## Content rules (hard)
@@ -139,7 +148,7 @@ They run in forward order, so scrolling down flies forward. The engine starts at
 - The resume (`~/Desktop/Shourya-Resume.pdf`) is the source of truth.
 - Never invent metrics, links, repos, demos, roles, dates, companies or certifications.
 - Rewording is allowed. Changing facts is not.
-- Missing content becomes a typed `null` with a visible TODO in the UI, and an entry in `docs/CONTENT-TODO.md`.
+- Missing content becomes a typed `null`, a `TodoMark` (visible in dev only; production renders nothing, so the surrounding UI must read correctly without it), and an entry in `docs/CONTENT-TODO.md`.
 
 **Never publish** DOB, gender, roll number, or the unredacted resume.
 

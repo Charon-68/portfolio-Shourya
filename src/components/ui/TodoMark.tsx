@@ -2,8 +2,10 @@ import type { ReactNode } from 'react';
 import { cx } from '@/lib/cx';
 
 /**
- * Visible placeholder for content Shourya has not supplied yet.
+ * Placeholder for content Shourya has not supplied yet.
  * `id` refers to a row in docs/CONTENT-TODO.md. Never replace with invented content.
+ * Development only: production builds render nothing, so internal notes never reach visitors
+ * (the surrounding UI must read correctly without it).
  */
 export function TodoMark({
   id,
@@ -17,6 +19,7 @@ export function TodoMark({
   /** Single-line, smaller variant for tight spots (metric captions, table cells). */
   compact?: boolean;
 }) {
+  if (!import.meta.env.DEV) return null;
   return (
     <span
       className={cx(

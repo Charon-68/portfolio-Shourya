@@ -155,6 +155,8 @@ export const Journal = forwardRef<JournalHandle, JournalProps>(function Journal(
             open ? 'translate-y-0' : 'translate-y-8',
           )}
         >
+          {/* The hero's h1 is hidden while reading; this keeps one h1 in the accessible page. */}
+          <h1 className="sr-only">Shourya Saxena — work, experience and more</h1>
           {chapters.map((c) => {
             const isContact = c.id === 'contact';
             return (

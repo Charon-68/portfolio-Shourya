@@ -53,7 +53,8 @@ export function SectionHeading({
       <Eyebrow index={index} tone={tone === 'opener' ? 'strong' : 'quiet'}>
         {eyebrow}
       </Eyebrow>
-      <H id={id} className={cx(sizeClass[size], 'ink-1 uppercase')}>
+      {/* tabIndex -1: view changes move focus here (never into the tab order). */}
+      <H id={id} tabIndex={id ? -1 : undefined} className={cx(sizeClass[size], 'ink-1 uppercase outline-none')}>
         {title}
       </H>
       {lead && <p className={cx('measure text-lead', tone === 'opener' ? 'ink-1' : 'ink-2')}>{lead}</p>}

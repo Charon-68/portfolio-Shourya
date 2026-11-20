@@ -17,9 +17,9 @@ export type MetricProps = {
   className?: string;
 };
 
-/** Splits "49.4%" → ["", "49.4", "%"], "R²=0.973" → ["R²=", "0.973", ""]. */
+/** Splits "49.4%" → ["", "49.4", "%"], "6,000+" → ["", "6,000", "+"]. Commas are thousands separators. */
 function splitNumber(value: string): [string, string, string] | null {
-  const m = value.match(/^(.*?)(\d+(?:[.,]\d+)?)(.*)$/);
+  const m = value.match(/^(.*?)(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)(.*)$/);
   return m ? [m[1], m[2], m[3]] : null;
 }
 
@@ -31,14 +31,20 @@ export function Metric({ value, label, context, tone = 'default', countUp = true
 
   useEffect(() => {
     if (!countUp || reduce || !inView || !parts || !numRef.current) return;
-    const target = parseFloat(parts[1].replace(',', '.'));
-    const decimals = (parts[1].split(/[.,]/)[1] ?? '').length;
+    const raw = parts[1];
+    const grouped = raw.includes(',');
+    const target = parseFloat(raw.replace(/,/g, ''));
+    const decimals = (raw.split('.')[1] ?? '').length;
+    const fmt = (v: number) =>
+      grouped
+        ? v.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+        : v.toFixed(decimals);
     const node = numRef.current;
     const controls = animate(0, target, {
       duration: dur.scene,
       ease: ease.outExpo,
       onUpdate: (v) => {
-        node.textContent = v.toFixed(decimals);
+        node.textContent = fmt(v);
       },
     });
     return () => controls.stop();
