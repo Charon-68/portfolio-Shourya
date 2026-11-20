@@ -100,6 +100,37 @@ Add behaviour through new APIs (`setMode`, `flyTo`, `setQuality`, `onProgress`) 
 
 In dev, `window.__valley` exposes the engine for console testing, e.g. forcing a context loss via the `WEBGL_lose_context` extension.
 
+**Journal and camera choreography (M4).**
+
+*Waypoints* are set in `src/content/chapters.ts` and were picked from a 16-point survey of the loop:
+
+| Stop | Position on the loop |
+|---|---|
+| home | 0.06 |
+| work | 0.19 |
+| experience | 0.31 |
+| about | 0.56 |
+| beyond | 0.69 |
+| contact | 0.92 |
+
+They run in forward order, so scrolling down flies forward. The engine starts at `HOME_WAYPOINT` (0.06, not the original 0.04), or at the deep-linked chapter's waypoint.
+
+*Active chapter:* the section crossing 45% of the viewport is the active chapter. It drives:
+- `flyTo(waypoint)`;
+- the engine mode (`contact` on the last chapter, otherwise `content`);
+- the URL hash, via `replaceState`.
+
+*Scrim:* `--scrim-t` = 1 − max(opener coverage). An opener filling the viewport means the light scrim and the valley showing through. Chapter openers always use `tone="opener"`.
+
+*Moving between hero and journal:*
+- **Hero → journal:**
+  - "Explore work", nav links, `#hash` links (including `hashchange` and Back/Forward);
+  - PageDown, ArrowDown or Space;
+  - a sustained scroll or swipe down (`useScrollIntent`, 1500 px; the hint fills while the wheel is also flying the camera).
+- **Journal → hero:**
+  - the wordmark;
+  - pulling up at the very top of the journal (900 px intent, with a hint).
+
 **Embedded preview panes** may report `document.hidden` while on screen. The rAF loop therefore doesn't trust `document.hidden`; only the software-GL timer loop pauses on it.
 
 ## Content rules (hard)

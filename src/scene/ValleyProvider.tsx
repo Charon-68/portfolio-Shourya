@@ -7,6 +7,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { chooseQualityTier, probeWebGL, type QualityTier } from '@/engine/capabilities';
+import { HOME_WAYPOINT } from '@/content/chapters';
 import type { EngineMode, ValleyEngine } from '@/engine/ValleyEngine';
 import { ValleyContext, type ValleyContextValue, type ValleyStatus } from './useValley';
 
@@ -16,6 +17,8 @@ export function ValleyProvider({ children }: { children: ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<ValleyEngine | null>(null);
   const modeRef = useRef<EngineMode>('explore');
+  /** Last requested camera position — applied as the start point if it arrives before the engine. */
+  const flyRef = useRef<number>(HOME_WAYPOINT);
 
   const [status, setStatus] = useState<ValleyStatus>('loading');
   const [progress, setProgress] = useState(0);
@@ -58,6 +61,7 @@ export function ValleyProvider({ children }: { children: ReactNode }) {
           engine = new ValleyEngine(container, {
             quality: startTier,
             software: caps.software,
+            initialProgress: flyRef.current,
             onProgress: (p) => !cancelled && setProgress(IMPORT_WEIGHT + p * (1 - IMPORT_WEIGHT)),
             onLoaded: () => !cancelled && setStatus('ready'),
             onIntroDone: () => !cancelled && setIntroDone(true),
@@ -102,7 +106,10 @@ export function ValleyProvider({ children }: { children: ReactNode }) {
       soundOn,
       toggleSound,
       setMode,
-      flyTo: (p) => engineRef.current?.flyTo(p),
+      flyTo: (p) => {
+        flyRef.current = p;
+        engineRef.current?.flyTo(p);
+      },
       setPaused: (paused) => engineRef.current?.setPaused(paused),
       startHover: () => engineRef.current?.startHoverTransition(),
       stopHover: () => engineRef.current?.stopHoverTransition(),

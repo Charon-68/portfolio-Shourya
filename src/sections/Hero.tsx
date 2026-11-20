@@ -9,6 +9,8 @@ import { useValley } from '@/scene/useValley';
 type HeroProps = {
   /** Hero is the active view (journal closed). */
   active: boolean;
+  /** 0..1 progress of a sustained downward scroll toward the journal (drives the hint). */
+  intent: number;
   onExplore: () => void;
 };
 
@@ -29,7 +31,7 @@ const nameLine: Variants = {
  * The first screen. Text is centred over the valley's mid-ground (where the engine's
  * look-target sits), so the brightest foreground blooms frame it rather than sit under it.
  */
-export function Hero({ active, onExplore }: HeroProps) {
+export function Hero({ active, intent, onExplore }: HeroProps) {
   const { introDone, startHover, stopHover, status } = useValley();
   const reduce = useReducedMotion();
   const shown = introDone || !!reduce;
@@ -104,13 +106,25 @@ export function Hero({ active, onExplore }: HeroProps) {
         transition={{ duration: dur.slow, delay: shown && !reduce ? 0.9 : 0 }}
       >
         <Telemetry className="hidden sm:block" />
-        {status !== 'fallback' && (
-          <p className="label ink-2 flex items-center gap-3 max-sm:mx-auto">
-            <span className="hidden md:inline">Scroll to fly · move to part the meadow</span>
-            <span className="md:hidden">Swipe to fly</span>
-            <span aria-hidden="true" className="h-6 w-px bg-[var(--hairline-strong)]" />
+        <div className="flex flex-col items-end gap-2 max-sm:mx-auto max-sm:items-center">
+          <p className="label ink-2 flex items-center gap-3">
+            {intent > 0.12 || status === 'fallback' ? (
+              <span className="ink-1">Keep scrolling to read ↓</span>
+            ) : (
+              <>
+                <span className="hidden md:inline">Scroll to fly · move to part the meadow</span>
+                <span className="md:hidden">Swipe to fly</span>
+              </>
+            )}
           </p>
-        )}
+          {/* Fills as a sustained scroll builds toward entering the journal. */}
+          <span aria-hidden="true" className="block h-px w-full min-w-24 bg-[var(--hairline-strong)]">
+            <span
+              className="block h-full origin-right bg-pollen transition-transform duration-[var(--dur-fast)] max-sm:origin-center"
+              style={{ transform: `scaleX(${intent})` }}
+            />
+          </span>
+        </div>
       </motion.div>
     </section>
   );

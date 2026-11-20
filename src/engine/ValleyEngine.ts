@@ -271,6 +271,8 @@ export type ValleyEngineOptions = {
   quality?: QualityTier;
   /** Pass the result of probeWebGL() to avoid probing twice. */
   software?: boolean;
+  /** Starting position on the valley loop (0..1). Default 0.04 (original). */
+  initialProgress?: number;
 };
 
 /**
@@ -457,6 +459,9 @@ export class ValleyEngine {
     mountTarget.appendChild(this.renderer.domElement);
 
     this.curve = this.createValleySpline();
+    if (options.initialProgress !== undefined) {
+      this.pathProgress = ((options.initialProgress % 1) + 1) % 1;
+    }
 
     void this.init(width, height);
   }

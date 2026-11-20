@@ -13,11 +13,20 @@ export type Chapter = {
   /** Chapter opener title. */
   title: string;
   lead: string;
+  /**
+   * Camera position on the valley loop (0..1) while this chapter is read. Chosen from a
+   * 16-point survey of the loop (M4): forward order, so scrolling down = flying forward.
+   */
+  waypoint: number;
 };
+
+/** Hero resting place: golden valley with the horizon in frame. */
+export const HOME_WAYPOINT = 0.06;
 
 export const chapters: Chapter[] = [
   {
     id: 'work',
+    waypoint: 0.19, // lushest warm field
     index: '01',
     label: 'Work',
     title: 'Selected Work',
@@ -25,6 +34,7 @@ export const chapters: Chapter[] = [
   },
   {
     id: 'experience',
+    waypoint: 0.31, // cooler violet/blue drift
     index: '02',
     label: 'Experience',
     title: 'Experience',
@@ -32,6 +42,7 @@ export const chapters: Chapter[] = [
   },
   {
     id: 'about',
+    waypoint: 0.56, // golden ridge
     index: '03',
     label: 'About',
     title: 'About',
@@ -39,6 +50,7 @@ export const chapters: Chapter[] = [
   },
   {
     id: 'beyond',
+    waypoint: 0.69, // calmer, darker meadow
     index: '04',
     label: 'Beyond Code',
     title: 'Beyond Code',
@@ -46,6 +58,7 @@ export const chapters: Chapter[] = [
   },
   {
     id: 'contact',
+    waypoint: 0.92, // open slope; camera also rises (contact mode)
     index: '05',
     label: 'Contact',
     title: 'Let’s build what’s next',
