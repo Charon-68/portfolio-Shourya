@@ -250,7 +250,7 @@ export const StudioSheet: React.FC<StudioSheetProps> = ({
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Your name"
-                      className="mt-2 w-full rounded-lg border border-[#f5efe2]/20 bg-black/40 px-4 py-3 text-sm text-[#f5efe2] placeholder:text-[#f5efe2]/35 focus:border-[#f5efe2]"
+                      className="mt-2 w-full rounded-lg border border-[#f5efe2]/20 bg-night/40 px-4 py-3 text-sm text-[#f5efe2] placeholder:text-[#f5efe2]/35 focus:border-[#f5efe2]"
                     />
                   </label>
                   <label className="block">
@@ -263,7 +263,7 @@ export const StudioSheet: React.FC<StudioSheetProps> = ({
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@studio.org"
-                      className="mt-2 w-full rounded-lg border border-[#f5efe2]/20 bg-black/40 px-4 py-3 text-sm text-[#f5efe2] placeholder:text-[#f5efe2]/35 focus:border-[#f5efe2]"
+                      className="mt-2 w-full rounded-lg border border-[#f5efe2]/20 bg-night/40 px-4 py-3 text-sm text-[#f5efe2] placeholder:text-[#f5efe2]/35 focus:border-[#f5efe2]"
                     />
                   </label>
                 </div>
@@ -277,7 +277,7 @@ export const StudioSheet: React.FC<StudioSheetProps> = ({
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Share a brief note on scope, timeline, or stewardship goals..."
-                    className="mt-2 w-full rounded-lg border border-[#f5efe2]/20 bg-black/40 px-4 py-3 text-sm text-[#f5efe2] placeholder:text-[#f5efe2]/35 focus:border-[#f5efe2]"
+                    className="mt-2 w-full rounded-lg border border-[#f5efe2]/20 bg-night/40 px-4 py-3 text-sm text-[#f5efe2] placeholder:text-[#f5efe2]/35 focus:border-[#f5efe2]"
                   />
                 </label>
                 <div className="flex flex-wrap items-center justify-between gap-4 pt-1">

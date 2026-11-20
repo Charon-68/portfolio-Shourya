@@ -1,0 +1,121 @@
+/*
+ * Design tokens — single source of truth. See docs/DESIGN-SYSTEM.md.
+ * Declared in Tailwind v4 @theme so every token is also a utility
+ * (bg-night, text-cream, font-display, text-display-l, ease-out-expo, …).
+ */
+@theme {
+  /* ---------- Colour ---------- */
+  --color-*: initial;
+  --color-night: #040705;        /* engine scene background */
+  --color-night-2: #0a0d0b;      /* raised surface (case-study backdrop) */
+  --color-moss: #1b231d;         /* hairline-on-dark alternative, chart grid */
+  --color-cream: #f5efe2;        /* primary ink on dark */
+  --color-ink: #151510;          /* text on cream */
+  --color-pollen: #eab560;       /* THE accent — from the engine's pollen/stamen glow */
+  --color-pollen-deep: #b9852f;  /* accent on hover / pressed */
+  --color-poppy: #d9573a;        /* data contrast only ("before", baselines) */
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* ---------- Type families ---------- */
+  --font-display: 'Antonio Variable', 'Antonio', 'Arial Narrow', sans-serif-condensed, sans-serif;
+  --font-sans: 'Manrope Variable', 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ---------- Type scale (fluid; min @375, max @1440) ---------- */
+  --text-display-xl: clamp(3.5rem, 1.6rem + 8.2vw, 9.25rem);   /* 56 → 148  hero name */
+  --text-display-xl--line-height: 0.94;
+  --text-display-xl--letter-spacing: -0.014em;
+  --text-display-l: clamp(2.75rem, 1.5rem + 5.4vw, 6.5rem);     /* 44 → 104  chapter titles */
+  --text-display-l--line-height: 0.96;
+  --text-display-l--letter-spacing: -0.012em;
+  --text-display-m: clamp(2.25rem, 1.5rem + 3.2vw, 4.5rem);     /* 36 → 72   project titles */
+  --text-display-m--line-height: 0.98;
+  --text-display-m--letter-spacing: -0.01em;
+  --text-display-s: clamp(1.625rem, 1.3rem + 1.4vw, 2.5rem);    /* 26 → 40   sub-heads */
+  --text-display-s--line-height: 1.02;
+  --text-numeral: clamp(2.5rem, 1.75rem + 3.2vw, 4.75rem);      /* 40 → 76   metrics */
+  --text-numeral--line-height: 0.9;
+  --text-lead: clamp(1.125rem, 1rem + 0.55vw, 1.4rem);          /* 18 → 22.4 */
+  --text-lead--line-height: 1.5;
+  --text-body: 1.0625rem;                                        /* 17 */
+  --text-body--line-height: 1.65;
+  --text-small: 0.875rem;                                        /* 14 */
+  --text-small--line-height: 1.55;
+  --text-label: 0.75rem;                                         /* 12 mono uppercase */
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: 0.14em;
+  --text-micro: 0.6875rem;                                       /* 11 mono telemetry */
+  --text-micro--line-height: 1.3;
+
+  /* ---------- Spacing (4px base; Tailwind multiplies --spacing) ---------- */
+  --spacing: 0.25rem;
+
+  /* ---------- Breakpoints ---------- */
+  --breakpoint-*: initial;
+  --breakpoint-sm: 40rem;   /* 640  large phones landscape */
+  --breakpoint-md: 51.25rem;/* 820  tablet — engine's mobile switch */
+  --breakpoint-lg: 68.75rem;/* 1100 laptop */
+  --breakpoint-xl: 90rem;   /* 1440 desktop */
+
+  /* ---------- Radius: plates are sharp; only controls are round ----------
+     (Tailwind's default radii stay available for the legacy sheet until M4;
+     new components use only these two.) */
+  --radius-hair: 2px;
+  --radius-pill: 999px;
+
+  /* ---------- Motion ---------- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);  /* engine/sheet house curve */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+:root {
+  /* Layout */
+  --gutter: clamp(1.25rem, 0.6rem + 2.8vw, 3.5rem);       /* 20 → 56 page side margin */
+  --content-max: 90rem;                                   /* 1440 */
+  --measure: 64ch;                                        /* reading width */
+  --section-gap: clamp(6rem, 4rem + 8vh, 11rem);
+  --header-h: clamp(4rem, 3.4rem + 1.6vw, 5.25rem);
+
+  /* Ink opacities on dark (use instead of ad-hoc /60 values) */
+  --ink-1: rgb(245 239 226 / 0.94);  /* headings, primary */
+  --ink-2: rgb(245 239 226 / 0.78);  /* body */
+  --ink-3: rgb(245 239 226 / 0.56);  /* secondary, labels */
+  --ink-4: rgb(245 239 226 / 0.34);  /* disabled, decorative */
+  --hairline: rgb(245 239 226 / 0.14);
+  --hairline-strong: rgb(245 239 226 / 0.28);
+
+  /*
+   * Scrims over the live valley — two stages, cross-faded by scroll (see DESIGN-SYSTEM.md §Scrim):
+   *  opener : chapter openers. Valley stays visible. Only ink-1/pollen text, display or lead sizes.
+   *           Worst case (brightest flower under text): ink-1 4.6:1.
+   *  reading: dense content. Worst case: ink-1 9.6:1 · ink-2 7.1:1 · ink-3 4.5:1.
+   */
+  --scrim-opener: rgb(4 7 5 / 0.55);
+  --scrim-reading: linear-gradient(
+    180deg,
+    rgb(4 7 5 / 0.8) 0%,
+    rgb(4 7 5 / 0.88) 40%,
+    rgb(4 7 5 / 0.92) 100%
+  );
+  --scrim-hero: radial-gradient(
+    60% 45% at 50% 50%,
+    rgb(4 7 5 / 0.38) 0%,
+    rgb(4 7 5 / 0) 100%
+  );
+
+  /* Durations */
+  --dur-fast: 180ms;
+  --dur-base: 420ms;
+  --dur-slow: 800ms;
+  --dur-scene: 1200ms;
+
+  /* Z layers */
+  --z-valley: 0;
+  --z-scrim: 1;
+  --z-ui: 2;
+  --z-content: 3;
+  --z-overlay: 4;
+  --z-loader: 5;
+}

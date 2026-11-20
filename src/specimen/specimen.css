@@ -1,0 +1,31 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+@import "../styles/base.css";
+
+#specimen-valley {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-valley);
+}
+
+#specimen-valley canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.specimen-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-scrim);
+  pointer-events: none;
+  background: var(--scrim-opener);
+}
+
+.specimen-scrim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--scrim-reading);
+  opacity: var(--scrim-t, 0);
+}
