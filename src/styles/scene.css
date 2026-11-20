@@ -96,3 +96,16 @@
     opacity: 0.4;
   }
 }
+
+/* Journal scrim: opener (valley visible) → reading, cross-faded by --scrim-t. */
+.journal-scrim {
+  background: var(--scrim-opener);
+}
+
+.journal-scrim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--scrim-reading);
+  opacity: var(--scrim-t, 0);
+}

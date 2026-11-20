@@ -30,6 +30,8 @@ type SectionHeadingProps = {
   size?: 'l' | 'm' | 's';
   id?: string;
   className?: string;
+  /** "opener" when the heading sits on the light opener scrim (strong eyebrow, ink-1 lead). */
+  tone?: 'opener' | 'reading';
 };
 
 const sizeClass = { l: 'text-display-l', m: 'text-display-m', s: 'text-display-s' } as const;
@@ -43,15 +45,18 @@ export function SectionHeading({
   size = 'l',
   id,
   className,
+  tone = 'reading',
 }: SectionHeadingProps) {
   const H = level === 2 ? 'h2' : 'h3';
   return (
     <header className={cx('flex flex-col gap-5 md:gap-6', className)}>
-      <Eyebrow index={index}>{eyebrow}</Eyebrow>
+      <Eyebrow index={index} tone={tone === 'opener' ? 'strong' : 'quiet'}>
+        {eyebrow}
+      </Eyebrow>
       <H id={id} className={cx(sizeClass[size], 'ink-1 uppercase')}>
         {title}
       </H>
-      {lead && <p className="measure text-lead ink-2">{lead}</p>}
+      {lead && <p className={cx('measure text-lead', tone === 'opener' ? 'ink-1' : 'ink-2')}>{lead}</p>}
     </header>
   );
 }

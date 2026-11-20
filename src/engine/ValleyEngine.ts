@@ -286,7 +286,16 @@ const nextFrame = () =>
       ch.port2.postMessage(null);
       return;
     }
-    requestAnimationFrame(() => resolve());
+    // Race rAF against a timeout: some contexts (unfocused embedded panes, occluded windows)
+    // report visible but never fire rAF — the build must not stall waiting for a frame.
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      resolve();
+    };
+    requestAnimationFrame(finish);
+    window.setTimeout(finish, 100);
   });
 
 export class ValleyEngine {
@@ -526,11 +535,10 @@ export class ValleyEngine {
       this.updateCamera(0.016);
       this.isReady = true;
 
-      requestAnimationFrame(() => {
-        if (this.isDisposed) return;
-        this.options.onLoaded?.();
-        this.startLoop();
-      });
+      await nextFrame();
+      if (this.isDisposed) return;
+      this.options.onLoaded?.();
+      this.startLoop();
     } catch (error) {
       if (!this.isDisposed) this.options.onError?.(error);
     }
