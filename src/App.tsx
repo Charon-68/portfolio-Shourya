@@ -1,76 +1,34 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { Loader } from './components/layout/Loader';
 import { StudioSheet, SheetSection } from './components/StudioSheet';
-import { ValleyEngine } from './engine/ValleyEngine';
+import { useValley } from './scene/useValley';
 
 export default function App() {
-  const valleyRef = useRef<HTMLDivElement | null>(null);
-  const engineRef = useRef<ValleyEngine | null>(null);
-
-  const [loaded, setLoaded] = useState(false);
-  const [introDone, setIntroDone] = useState(false);
-  const [isSoundOn, setIsSoundOn] = useState(false);
+  const { introDone, soundOn, toggleSound, setMode, startHover, stopHover, status } = useValley();
   const [activeSheet, setActiveSheet] = useState<SheetSection>(null);
 
-  useEffect(() => {
-    const container = valleyRef.current;
-    if (!container) return;
-
-    let introNotified = false;
-    const engine = new ValleyEngine(
-      container,
-      () => {
-        setLoaded(true);
-      },
-      () => {
-        if (!introNotified) {
-          introNotified = true;
-          setIntroDone(true);
-        }
-      },
-    );
-
-    engine.audioStore.initAudio();
-    engineRef.current = engine;
-
-    return () => {
-      engine.dispose();
-      engineRef.current = null;
-    };
-  }, []);
-
-  const handleToggleSound = useCallback(() => {
-    const store = engineRef.current?.audioStore;
-    if (!store || !store.isInitialized) return;
-    const muted = store.toggleMute();
-    setIsSoundOn(!muted);
-  }, []);
-
-  const handleOpenSheet = useCallback((section: Exclude<SheetSection, null>) => {
-    setActiveSheet(section);
-    engineRef.current?.startHoverTransition();
-  }, []);
+  const handleOpenSheet = useCallback(
+    (section: Exclude<SheetSection, null>) => {
+      setActiveSheet(section);
+      setMode('content');
+    },
+    [setMode],
+  );
 
   const handleCloseSheet = useCallback(() => {
     setActiveSheet(null);
-    engineRef.current?.stopHoverTransition();
-  }, []);
+    setMode('explore');
+  }, [setMode]);
 
-  const handleGoPointerEnter = useCallback(() => {
-    engineRef.current?.startHoverTransition();
-  }, []);
-
+  const handleGoPointerEnter = useCallback(() => startHover(), [startHover]);
   const handleGoPointerLeave = useCallback(() => {
-    if (!activeSheet) {
-      engineRef.current?.stopHoverTransition();
-    }
-  }, [activeSheet]);
+    if (!activeSheet) stopHover();
+  }, [activeSheet, stopHover]);
+  const isSoundOn = soundOn;
+  const handleToggleSound = toggleSound;
 
   return (
     <>
-      <div id="valley" ref={valleyRef} aria-hidden="true">
-        <div className="js-canvas-container" />
-      </div>
-
       <div className={`ui ${introDone ? 'on' : ''}`} id="ui">
         <header className="fh-header">
           <a
@@ -157,6 +115,7 @@ export default function App() {
         <div className="corner">
           <span>Scroll to wander</span>
           <i />
+          {status !== 'fallback' && (
           <button
             type="button"
             className="sound"
@@ -174,6 +133,7 @@ export default function App() {
               <path className="x" d="m16 10 4 4m0-4-4 4" />
             </svg>
           </button>
+          )}
         </div>
       </div>
 
@@ -183,9 +143,7 @@ export default function App() {
         onNavigate={handleOpenSheet}
       />
 
-      <div className={`loader ${loaded ? 'gone' : ''}`} id="loader">
-        <span />
-      </div>
+      <Loader />
     </>
   );
 }

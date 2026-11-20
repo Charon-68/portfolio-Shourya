@@ -4,6 +4,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ValleyAudioStore } from './AudioEngine';
+import { detectSoftwareWebGL, QUALITY, type QualitySettings, type QualityTier } from './capabilities';
 import {
   createCuppedWildflowerGeometry,
   createDaisyHeadGeometry,
@@ -175,21 +176,6 @@ const GLSL_ENVIRONMENT_COMMON = /* glsl */ `
   }
 `;
 
-function detectSoftwareWebGL(): boolean {
-  try {
-    const probeCanvas = document.createElement('canvas');
-    const gl = probeCanvas.getContext('webgl2') || probeCanvas.getContext('webgl');
-    if (!gl) return true;
-    const ext = gl.getExtension('WEBGL_debug_renderer_info');
-    const param = ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER;
-    const gpu = String(gl.getParameter(param) || '');
-    gl.getExtension('WEBGL_lose_context')?.loseContext();
-    return /SwiftShader|llvmpipe|softpipe|Software|Basic Render/i.test(gpu);
-  } catch {
-    return true;
-  }
-}
-
 const SPLINE_RADIUS_X = 44;
 const SPLINE_RADIUS_Z = 78;
 
@@ -257,11 +243,72 @@ function makeInstancedFromBase(
   return inst;
 }
 
+export type EngineMode = 'explore' | 'content' | 'contact';
+
+export type EngineTelemetry = {
+  x: number;
+  z: number;
+  /** Camera height above the local terrain surface. */
+  altitude: number;
+  fps: number;
+  tier: QualityTier;
+  mode: EngineMode;
+  /** 0..1 position along the valley loop. */
+  progress: number;
+};
+
+export type ValleyEngineOptions = {
+  /** Called when the first frame has rendered. */
+  onLoaded?: () => void;
+  /** Called once the intro swoop is ~92% complete. */
+  onIntroDone?: () => void;
+  /** Staged build progress 0..1 (genuine: one step per build stage). */
+  onProgress?: (progress: number, stage: string) => void;
+  /** Initialisation failed after construction (shader compile, out of memory, …). */
+  onError?: (error: unknown) => void;
+  /** Runtime auto-downgrade notifications. */
+  onQualityChange?: (tier: QualityTier) => void;
+  quality?: QualityTier;
+  /** Pass the result of probeWebGL() to avoid probing twice. */
+  software?: boolean;
+};
+
+/**
+ * Yield between build stages. Visible: wait for a frame so the loader paints.
+ * Hidden (background tab): rAF and timers are throttled, so yield via a MessageChannel
+ * task instead — the build keeps going at full speed and is ready when the tab returns.
+ */
+const nextFrame = () =>
+  new Promise<void>((resolve) => {
+    if (document.hidden) {
+      const ch = new MessageChannel();
+      ch.port1.onmessage = () => resolve();
+      ch.port2.postMessage(null);
+      return;
+    }
+    requestAnimationFrame(() => resolve());
+  });
+
 export class ValleyEngine {
   private container: HTMLElement;
-  private onLoaded: () => void;
-  private onIntroDone: () => void;
+  private options: ValleyEngineOptions;
   public audioStore: ValleyAudioStore;
+
+  public readonly tier: QualityTier;
+  private quality: QualitySettings;
+  private currentTier: QualityTier;
+  private mode: EngineMode = 'explore';
+  private isReady = false;
+  private isRunning = false;
+  private isPaused = false;
+  private isHidden = false;
+  private isContextLost = false;
+  private flyTarget: number | null = null;
+  private targetLift = 0;
+  private currentLift = 0;
+  private fpsEma = 60;
+  private lowFpsTime = 0;
+  private lastRenderTime = 0;
 
   private scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
@@ -363,15 +410,13 @@ export class ValleyEngine {
   private touchLastY = 0;
   private isTouching = false;
 
-  constructor(
-    container: HTMLElement,
-    onLoaded: () => void,
-    onIntroDone: () => void,
-  ) {
+  constructor(container: HTMLElement, options: ValleyEngineOptions = {}) {
     this.container = container;
-    this.onLoaded = onLoaded;
-    this.onIntroDone = onIntroDone;
-    this.isSoftwareGl = detectSoftwareWebGL();
+    this.options = options;
+    this.isSoftwareGl = options.software ?? detectSoftwareWebGL();
+    this.tier = this.isSoftwareGl ? 'low' : (options.quality ?? 'high');
+    this.currentTier = this.tier;
+    this.quality = { ...QUALITY[this.tier] };
     this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const mountTarget =
@@ -388,6 +433,7 @@ export class ValleyEngine {
     this.camera = new THREE.PerspectiveCamera(fov, aspect, 0.2, 260);
     this.audioStore = new ValleyAudioStore(this.camera);
 
+    // Throws synchronously if WebGL is unavailable — callers must catch and show the fallback.
     this.renderer = new THREE.WebGLRenderer({
       antialias: !this.isSoftwareGl,
       powerPreference: 'high-performance',
@@ -396,58 +442,98 @@ export class ValleyEngine {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.06;
-    this.renderer.setPixelRatio(
-      this.isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, 2),
-    );
+    this.renderer.setPixelRatio(this.pixelRatio());
     this.renderer.setSize(width, height);
     mountTarget.innerHTML = '';
     mountTarget.appendChild(this.renderer.domElement);
 
     this.curve = this.createValleySpline();
 
-    const detailTex = createSurfaceDetailTexture();
-    this.disposables.push(detailTex);
+    void this.init(width, height);
+  }
 
-    this.buildSkyAndTerrain(detailTex);
-    this.buildBotanicalEcosystem(detailTex);
-    this.buildBotanicalPointCarpet();
-    this.buildFloatingPetals();
-    this.buildDustAndAirStreams();
-    this.buildParticleTrails();
-    this.buildLightRays();
+  /** Population count scaled by the quality tier's density (min 1). */
+  private scaled(count: number): number {
+    return Math.max(1, Math.round(count * this.quality.density));
+  }
 
-    if (!this.isSoftwareGl) {
-      this.composer = new EffectComposer(this.renderer);
-      this.composer.addPass(new RenderPass(this.scene, this.camera));
+  private scaledPoints(count: number): number {
+    return Math.max(1, Math.round(count * this.quality.pointDensity));
+  }
 
-      // Selective golden-hour bloom catching pollen domes, sunlit petal rims, focal blossoms & trails
-      // without blurring crisp botanical petal silhouettes
-      this.bloomPass = new UnrealBloomPass(
-        new THREE.Vector2(width, height),
-        0.45,
-        0.56,
-        0.59,
-      );
-      this.composer.addPass(this.bloomPass);
+  private pixelRatio(): number {
+    return this.isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, this.quality.dprCap);
+  }
 
-      this.postPass = new ShaderPass(SplitRgbNoiseVignetteShader);
-      this.postPass.uniforms.uResolution.value.set(width, height);
-      this.composer.addPass(this.postPass);
-    }
+  /**
+   * Staged scene construction. Each stage yields a frame so the loader can paint genuine
+   * progress and the main thread never blocks for the whole build at once.
+   */
+  private async init(width: number, height: number): Promise<void> {
+    const report = (p: number, stage: string) => this.options.onProgress?.(p, stage);
+    try {
+      let detailTex: THREE.CanvasTexture | null = null;
+      const stages: Array<[string, () => void]> = [
+        ['textures', () => {
+          detailTex = createSurfaceDetailTexture();
+          this.disposables.push(detailTex);
+        }],
+        ['terrain', () => this.buildSkyAndTerrain(detailTex!)],
+        ['flowers', () => this.buildBotanicalEcosystem(detailTex!)],
+        ['meadow', () => this.buildBotanicalPointCarpet()],
+        ['petals', () => this.buildFloatingPetals()],
+        ['air', () => this.buildDustAndAirStreams()],
+        ['trails', () => this.buildParticleTrails()],
+        ['light', () => this.buildLightRays()],
+      ];
 
-    if (!this.isSoftwareGl) {
-      this.renderer.compile(this.scene, this.camera);
-    }
-
-    this.bindEvents();
-    this.updateCamera(0.016);
-
-    requestAnimationFrame(() => {
+      for (let i = 0; i < stages.length; i++) {
+        if (this.isDisposed) return;
+        const [name, build] = stages[i];
+        build();
+        report((i + 1) / (stages.length + 1), name);
+        await nextFrame();
+      }
       if (this.isDisposed) return;
-      this.onLoaded();
-      this.lastTimestamp = performance.now();
-      this.tick(this.lastTimestamp);
-    });
+
+      if (this.quality.postFx && !this.isSoftwareGl) {
+        this.composer = new EffectComposer(this.renderer);
+        this.composer.addPass(new RenderPass(this.scene, this.camera));
+
+        // Selective golden-hour bloom catching pollen domes, sunlit petal rims, focal blossoms & trails
+        // without blurring crisp botanical petal silhouettes
+        this.bloomPass = new UnrealBloomPass(
+          new THREE.Vector2(width, height),
+          0.45,
+          0.56,
+          0.59,
+        );
+        this.composer.addPass(this.bloomPass);
+
+        this.postPass = new ShaderPass(SplitRgbNoiseVignetteShader);
+        this.postPass.uniforms.uResolution.value.set(width, height);
+        this.composer.addPass(this.postPass);
+      }
+
+      if (!this.isSoftwareGl) {
+        // Parallel shader compilation where KHR_parallel_shader_compile is available.
+        await this.renderer.compileAsync(this.scene, this.camera);
+      }
+      if (this.isDisposed) return;
+      report(1, 'ready');
+
+      this.bindEvents();
+      this.updateCamera(0.016);
+      this.isReady = true;
+
+      requestAnimationFrame(() => {
+        if (this.isDisposed) return;
+        this.options.onLoaded?.();
+        this.startLoop();
+      });
+    } catch (error) {
+      if (!this.isDisposed) this.options.onError?.(error);
+    }
   }
 
   /**
@@ -611,9 +697,9 @@ export class ValleyEngine {
    *  - 420 mossy hillside rocks / meadow stones
    */
   private buildBotanicalEcosystem(detailTex: THREE.CanvasTexture): void {
-    const poppyCount = 3800;
-    const daisyCount = 2500;
-    const spikeCount = 2100;
+    const poppyCount = this.scaled(3800);
+    const daisyCount = this.scaled(2500);
+    const spikeCount = this.scaled(2100);
     const totalStemCount = poppyCount + daisyCount + spikeCount;
 
     const origins = new Float32Array(totalStemCount * 3);
@@ -1086,7 +1172,7 @@ export class ValleyEngine {
     buildHeadSpeciesBatch(createSpikeClusterGeometry(), poppyCount + daisyCount, spikeCount, false);
 
     // 3. 18,000 Varied 7-Blade Meadow Grass Tufts
-    const grassCount = 18000;
+    const grassCount = this.scaled(18000);
     const grassOrigins = new Float32Array(grassCount * 3);
     const grassScales = new Float32Array(grassCount);
     const grassYaws = new Float32Array(grassCount);
@@ -1255,7 +1341,7 @@ export class ValleyEngine {
     this.disposables.push(baseGrassGeo, grassInstGeo, this.grassMaterial);
 
     // 4. 3,400 Woodland Fern & Leafy Shrub Rosettes
-    const fernCount = 3400;
+    const fernCount = this.scaled(3400);
     const fernOrigins = new Float32Array(fernCount * 3);
     const fernScales = new Float32Array(fernCount);
     const fernYaws = new Float32Array(fernCount);
@@ -1417,7 +1503,7 @@ export class ValleyEngine {
     this.disposables.push(baseFernGeo, fernInstGeo, this.fernMaterial);
 
     // 5. 420 Moss-Capped Natural Meadow Stones Partially Embedded in Hillsides
-    const rockCount = 420;
+    const rockCount = this.scaled(420);
     const baseRockGeo = new THREE.IcosahedronGeometry(0.45, 1);
     const rockPos = baseRockGeo.attributes.position;
     for (let i = 0; i < rockPos.count; i++) {
@@ -1525,8 +1611,8 @@ export class ValleyEngine {
     const atlas = createBotanicalAtlasTexture(maxAniso);
     this.disposables.push(atlas);
 
-    const foliageCount = 24000;
-    const flowerCount = 14000;
+    const foliageCount = this.scaledPoints(24000);
+    const flowerCount = this.scaledPoints(14000);
     const totalCount = foliageCount + flowerCount;
 
     const positions = new Float32Array(totalCount * 3);
@@ -1809,7 +1895,7 @@ export class ValleyEngine {
   }
 
   private buildFloatingPetals(): void {
-    const petalCount = 260;
+    const petalCount = this.scaled(260);
     const shape = new THREE.Shape();
     shape.moveTo(0, 0);
     shape.bezierCurveTo(-0.07, 0.07, -0.05, 0.2, 0, 0.24);
@@ -1875,7 +1961,7 @@ export class ValleyEngine {
     const dustTexture = createDustTexture();
     this.disposables.push(dustTexture);
 
-    const count = 2100;
+    const count = this.scaledPoints(2100);
     const positions = new Float32Array(count * 3);
     const seeds = new Float32Array(count);
     const colors = new Float32Array(count * 3);
@@ -1997,7 +2083,7 @@ export class ValleyEngine {
     this.disposables.push(geometry, this.dustMaterial);
 
     // Subtle soft air-current ribbons drifting smoothly above the hills
-    const streamCount = 85;
+    const streamCount = this.scaled(85);
     const baseRibbon = new THREE.PlaneGeometry(3.2, 0.05, 16, 1);
     const streamInst = makeInstancedFromBase(baseRibbon, streamCount);
 
@@ -2446,13 +2532,15 @@ export class ValleyEngine {
 
     this.renderer.domElement.addEventListener('webglcontextlost', this.handleContextLost);
     this.renderer.domElement.addEventListener('webglcontextrestored', this.handleContextRestored);
+    document.addEventListener('visibilitychange', this.handleVisibility);
+    this.isHidden = this.isSoftwareGl && document.hidden;
   }
 
   private handleResize = (): void => {
     if (this.isDisposed) return;
     const width = this.container.clientWidth || window.innerWidth;
     const height = this.container.clientHeight || window.innerHeight;
-    const pixelRatio = this.isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+    const pixelRatio = this.pixelRatio();
     const aspect = width / height;
 
     this.camera.fov =
@@ -2489,6 +2577,8 @@ export class ValleyEngine {
   };
 
   private handleWheel = (e: WheelEvent): void => {
+    // Only the hero ("explore") flies with the wheel; elsewhere the page scrolls natively.
+    if (this.mode !== 'explore') return;
     this.targetScrollImpulse += e.deltaY * 0.000018;
   };
 
@@ -2511,7 +2601,9 @@ export class ValleyEngine {
     const y = e.touches[0].clientY;
     const dy = this.touchLastY - y;
     this.touchLastY = y;
-    this.targetScrollImpulse += dy * 0.000018 * 20;
+    if (this.mode === 'explore') {
+      this.targetScrollImpulse += dy * 0.000018 * 20;
+    }
 
     const width = window.innerWidth || 1;
     const height = window.innerHeight || 1;
@@ -2535,14 +2627,28 @@ export class ValleyEngine {
   };
 
   private handleContextLost = (e: Event): void => {
+    // preventDefault signals we intend to restore. three.js re-uploads geometry, textures
+    // (CanvasTexture sources stay in memory) and render targets lazily after restore.
     e.preventDefault();
-    cancelAnimationFrame(this.frameId);
-    clearTimeout(this.frameId);
+    this.isContextLost = true;
+    this.stopLoop();
   };
 
   private handleContextRestored = (): void => {
-    this.lastTimestamp = performance.now();
-    this.tick(this.lastTimestamp);
+    this.isContextLost = false;
+    this.startLoop();
+  };
+
+  /**
+   * rAF already stops in hidden tabs, so only the software-GL path (setTimeout-driven)
+   * needs an explicit pause. Some embedded webviews report hidden while on screen, so the
+   * rAF path deliberately does not trust document.hidden.
+   */
+  private handleVisibility = (): void => {
+    if (!this.isSoftwareGl) return;
+    this.isHidden = document.hidden;
+    if (this.isHidden) this.stopLoop();
+    else this.startLoop();
   };
 
   public startHoverTransition(): void {
@@ -2551,8 +2657,111 @@ export class ValleyEngine {
   }
 
   public stopHoverTransition(): void {
+    if (this.mode === 'content') return; // content mode owns the hover state
     this.targetHover = 0;
     this.audioStore.setMuffled(false);
+  }
+
+  /**
+   * explore: hero. Wheel/touch fly the camera (original behaviour).
+   * content: reading over the valley. Flight slows (existing hover transition), input is
+   *          ignored so native page scroll never moves the camera, rendering drops to 30 fps.
+   * contact: closing scene. Hover released, camera rises by introExtraHeight (reverse swoop).
+   */
+  public setMode(mode: EngineMode): void {
+    if (mode === this.mode) return;
+    this.mode = mode;
+    this.targetScrollImpulse = 0;
+    this.targetLift = mode === 'contact' ? CAMERA_CONFIG.introExtraHeight : 0;
+    if (mode === 'content') {
+      this.targetHover = 1;
+      this.audioStore.setMuffled(true);
+    } else {
+      this.targetHover = 0;
+      this.audioStore.setMuffled(false);
+    }
+  }
+
+  public getMode(): EngineMode {
+    return this.mode;
+  }
+
+  /** Eases the camera to a 0..1 position on the valley loop (shortest way round). */
+  public flyTo(progress: number): void {
+    const target = ((progress % 1) + 1) % 1;
+    if (this.prefersReducedMotion) {
+      this.pathProgress = target; // cut instead of travel
+      this.flyTarget = null;
+      return;
+    }
+    this.flyTarget = target;
+  }
+
+  public getProgress(): number {
+    return this.pathProgress;
+  }
+
+  /** Stop rendering entirely (e.g. an opaque page fully covers the canvas). */
+  public setPaused(paused: boolean): void {
+    this.isPaused = paused;
+    if (paused) this.stopLoop();
+    else this.startLoop();
+  }
+
+  public getTelemetry(): EngineTelemetry {
+    const p = this.camera.position;
+    return {
+      x: p.x,
+      z: p.z,
+      altitude: p.y - sampleTerrainHeight(p.x, p.z),
+      fps: this.fpsEma,
+      tier: this.currentTier,
+      mode: this.mode,
+      progress: this.pathProgress,
+    };
+  }
+
+  private startLoop(): void {
+    if (this.isRunning || this.isDisposed || !this.isReady) return;
+    if (this.isPaused || this.isHidden || this.isContextLost) return;
+    this.isRunning = true;
+    this.lastTimestamp = performance.now();
+    this.lastRenderTime = 0;
+    this.frameId = requestAnimationFrame(this.tick);
+  }
+
+  private stopLoop(): void {
+    this.isRunning = false;
+    cancelAnimationFrame(this.frameId);
+    clearTimeout(this.frameId);
+  }
+
+  /**
+   * One-way runtime step-down when sustained explore-mode fps is low:
+   * first cap DPR at 1, then drop the post-processing chain. Shader constants never change.
+   */
+  private adaptQuality(dt: number): void {
+    if (this.mode !== 'explore' || this.isSoftwareGl || this.introProgress < 1) return;
+    if (this.fpsEma < 36) this.lowFpsTime += dt;
+    else this.lowFpsTime = Math.max(0, this.lowFpsTime - dt * 0.5);
+    if (this.lowFpsTime < 4) return;
+    this.lowFpsTime = 0;
+    this.fpsEma = 60;
+
+    if (this.quality.dprCap > 1) {
+      this.quality.dprCap = 1;
+      this.currentTier = this.currentTier === 'high' ? 'medium' : 'low';
+      this.handleResize();
+    } else if (this.composer) {
+      this.composer.dispose();
+      this.composer = null;
+      this.bloomPass = null;
+      this.postPass = null;
+      this.currentTier = 'low';
+    } else {
+      return;
+    }
+    this.options.onQualityChange?.(this.currentTier);
   }
 
   /**
@@ -2659,11 +2868,11 @@ export class ValleyEngine {
       this.introProgress = Math.min(1, this.introProgress + dt * 0.65);
       if (this.introProgress >= 0.92 && !this.introNotified) {
         this.introNotified = true;
-        this.onIntroDone();
+        this.options.onIntroDone?.();
       }
     } else if (!this.introNotified) {
       this.introNotified = true;
-      this.onIntroDone();
+      this.options.onIntroDone?.();
     }
 
     this.currentHover = THREE.MathUtils.damp(this.currentHover, this.targetHover, 3.2, dt);
@@ -2671,7 +2880,22 @@ export class ValleyEngine {
     this.currentMouse.y = THREE.MathUtils.damp(this.currentMouse.y, this.targetMouse.y, 4.2, dt);
 
     const flightScale = this.prefersReducedMotion ? 0.15 : 1 - this.currentHover * 0.95;
-    const targetVelocity = (CAMERA_CONFIG.driftSpeed + this.targetScrollImpulse) * flightScale;
+    // flyTo(): eases toward a chapter waypoint on the loop. Added on top of the tuned drift
+    // and deliberately outside flightScale so it still moves while content mode slows flight.
+    let flyVelocity = 0;
+    if (this.flyTarget !== null) {
+      const delta = ((((this.flyTarget - this.pathProgress) % 1) + 1.5) % 1) - 0.5;
+      if (Math.abs(delta) < 0.0004) {
+        this.flyTarget = null;
+      } else {
+        // ~1.5–2.5 s for a typical chapter hop (Δ 0.1–0.25); speed also drives the tuned
+        // speed-reactive vignette/aberration, so travel reads as motion, not a cut.
+        flyVelocity = THREE.MathUtils.clamp(delta * 2.4, -0.11, 0.11);
+      }
+    }
+    const targetVelocity =
+      (CAMERA_CONFIG.driftSpeed + this.targetScrollImpulse) * flightScale + flyVelocity;
+    this.currentLift = THREE.MathUtils.damp(this.currentLift, this.targetLift, 1.6, dt);
     this.scrollVelocity = THREE.MathUtils.damp(this.scrollVelocity, targetVelocity, 4.2, dt);
     this.targetScrollImpulse *= Math.exp(-5.0 * dt);
 
@@ -2693,7 +2917,8 @@ export class ValleyEngine {
     this._pos.y =
       Math.max(localGround, sampleTerrainHeight(this._pos.x, this._pos.z)) +
       CAMERA_CONFIG.elevationAboveTerrain +
-      swoopEase * CAMERA_CONFIG.introExtraHeight;
+      swoopEase * CAMERA_CONFIG.introExtraHeight +
+      this.currentLift;
 
     // 2. Decoupled terrain-anchored look-at target ahead for genuine downward panoramic framing
     const aheadT = (this.pathProgress + CAMERA_CONFIG.lookAheadProgress) % 1;
@@ -2712,7 +2937,8 @@ export class ValleyEngine {
       targetGround +
       CAMERA_CONFIG.lookTargetTerrainOffset +
       this.currentMouse.y * CAMERA_CONFIG.mouseParallaxY -
-      swoopEase * 1.1;
+      swoopEase * 1.1 +
+      this.currentLift * 0.5;
 
     if (!this.hasInitializedCamera) {
       this._smoothedLookTarget.copy(this._lookTarget);
@@ -2769,13 +2995,25 @@ export class ValleyEngine {
   }
 
   private tick = (now = performance.now()): void => {
-    if (this.isDisposed) return;
+    if (this.isDisposed || !this.isRunning) return;
 
-    const dt = Math.min((now - this.lastTimestamp) / 1000 || 0.016, 0.08);
+    // Content mode: the valley sits under a scrim — 30 fps is indistinguishable and halves GPU time.
+    if (this.mode === 'content' && !this.isSoftwareGl && now - this.lastRenderTime < 32) {
+      this.frameId = requestAnimationFrame(this.tick);
+      return;
+    }
+    this.lastRenderTime = now;
+
+    const rawDt = (now - this.lastTimestamp) / 1000 || 0.016;
+    if (this.mode === 'explore' && rawDt > 0) {
+      this.fpsEma = this.fpsEma * 0.95 + Math.min(1 / rawDt, 240) * 0.05;
+    }
+    const dt = Math.min(rawDt, 0.08);
     this.lastTimestamp = now;
     this.elapsed += dt;
 
     this.updateCamera(dt);
+    this.adaptQuality(dt);
 
     this.terrainMaterial.uniforms.uCursorWorld.value.copy(this._cursorWorldCurrent);
     this.terrainMaterial.uniforms.uCursorActive.value = this.currentCursorActive;
@@ -2858,6 +3096,7 @@ export class ValleyEngine {
       this.composer.render();
     }
 
+    if (!this.isRunning) return;
     if (this.isSoftwareGl) {
       this.afterDraw(() => this.tick(performance.now()));
     } else {
@@ -2867,8 +3106,8 @@ export class ValleyEngine {
 
   public dispose(): void {
     this.isDisposed = true;
-    cancelAnimationFrame(this.frameId);
-    clearTimeout(this.frameId);
+    this.stopLoop();
+    document.removeEventListener('visibilitychange', this.handleVisibility);
 
     window.removeEventListener('resize', this.handleResize);
     window.removeEventListener('wheel', this.handleWheel);

@@ -4,9 +4,14 @@ import * as THREE from 'three';
  * Nocturnal ambient audio engine routed through Three.js AudioListener.
  * Starts muted and fades cleanly in/out on toggle, with a low-pass filter
  * muffle sweep during CTA hover transitions.
+ *
+ * The AudioContext is created lazily on the first toggle (a user gesture), so the
+ * browser never logs autoplay warnings and nothing runs until sound is requested.
+ * Fully synthesised — no audio files are downloaded.
  */
 export class ValleyAudioStore {
-  public listener: THREE.AudioListener;
+  private listener: THREE.AudioListener | null = null;
+  private camera: THREE.Camera;
   public isInitialized = false;
   public isMuted = true;
 
@@ -18,13 +23,21 @@ export class ValleyAudioStore {
   private isDisposed = false;
 
   constructor(camera: THREE.Camera) {
-    this.listener = new THREE.AudioListener();
-    camera.add(this.listener);
+    this.camera = camera;
+  }
+
+  /** Call from a user gesture. Initialises on first use, then flips mute. Returns the new muted state. */
+  public toggle(): boolean {
+    if (this.isDisposed) return true;
+    if (!this.isInitialized) this.initAudio();
+    return this.toggleMute();
   }
 
   public initAudio(): void {
     if (this.isInitialized || this.isDisposed) return;
 
+    this.listener = new THREE.AudioListener();
+    this.camera.add(this.listener);
     const ctx = this.listener.context;
     const input = this.listener.getInput();
 
@@ -143,7 +156,7 @@ export class ValleyAudioStore {
   }
 
   public toggleMute(): boolean {
-    if (!this.isInitialized || !this.masterGain) return this.isMuted;
+    if (!this.isInitialized || !this.masterGain || !this.listener) return this.isMuted;
     const ctx = this.listener.context;
     if (ctx.state === 'suspended') {
       void ctx.resume();
@@ -159,7 +172,7 @@ export class ValleyAudioStore {
   }
 
   public setMuffled(muffled: boolean): void {
-    if (!this.isInitialized || !this.muffleFilter) return;
+    if (!this.isInitialized || !this.muffleFilter || !this.listener) return;
     const ctx = this.listener.context;
     const now = ctx.currentTime;
     this.muffleFilter.frequency.cancelScheduledValues(now);
@@ -190,8 +203,13 @@ export class ValleyAudioStore {
     }
     this.masterGain?.disconnect();
     this.muffleFilter?.disconnect();
-    if (this.listener.context.state === 'running') {
-      void this.listener.context.close().catch(() => {});
+    if (this.listener) {
+      this.camera.remove(this.listener);
+      // three.js shares one AudioContext app-wide (THREE.AudioContext), so suspend rather than
+      // close: a remounted engine (HMR, route change) must be able to reuse it.
+      if (this.listener.context.state === 'running') {
+        void this.listener.context.suspend().catch(() => {});
+      }
     }
   }
 }

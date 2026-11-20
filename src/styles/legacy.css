@@ -25,23 +25,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-#valley {
-  position: fixed;
-  inset: 0;
-  background: #000;
-}
-
-.js-canvas-container {
-  position: absolute;
-  inset: 0;
-}
-
-.js-canvas-container canvas {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-}
-
 .lil-gui {
   display: none !important;
 }
@@ -247,38 +230,6 @@ body {
   opacity: 0;
 }
 
-.loader {
-  position: fixed;
-  inset: 0;
-  z-index: 3;
-  display: grid;
-  place-items: center;
-  background: #000;
-  transition: opacity 1s ease;
-  pointer-events: none;
-}
-
-.loader.gone {
-  opacity: 0;
-}
-
-.loader span {
-  width: calc(9 * var(--u));
-  height: calc(9 * var(--u));
-  min-width: 6px;
-  min-height: 6px;
-  border-radius: 50%;
-  background: var(--cream);
-  animation: pulse 1.2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  50% {
-    transform: scale(0.4);
-    opacity: 0.4;
-  }
-}
-
 /* Studio Drawer Panel (opens when navigating Work / About / Journal / Let's talk) */
 .studio-sheet-backdrop {
   position: fixed;
@@ -374,11 +325,5 @@ body {
     bottom: 30px;
     justify-content: center;
     font-size: 11px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .loader span {
-    animation: none;
   }
 }

@@ -71,6 +71,37 @@ Add behaviour through new APIs (`setMode`, `flyTo`, `setQuality`, `onProgress`) 
 - Lazy-load `three` and the engine.
 - Mobile uses the low tier.
 
+**Engine API (M2).** React only talks to the engine through `useValley()` (`src/scene/useValley.ts`). The engine is owned by `src/scene/ValleyProvider.tsx`.
+- `setMode('explore' | 'content' | 'contact')`:
+  - `explore`: wheel/touch fly the camera.
+  - `content`: input ignored, hover transition on, rendering at 30 fps.
+  - `contact`: the camera rises by `introExtraHeight`.
+- `flyTo(progress 0..1)`: eases to a waypoint, about 2 s for a 0.2 hop. Reduced motion cuts instead of travelling.
+- `setPaused(bool)`: stops rendering entirely (use when an opaque page fully covers the canvas).
+- `getTelemetry()`: read on demand. Never put it in React state per frame.
+- `status`, `progress`, `introDone`, `tier`: React state for the loader and UI.
+
+**Quality tiers** live in `src/engine/capabilities.ts`:
+
+| Tier | DPR cap | Geometry density | Point density | Post-fx | Render cost* |
+|---|---|---|---|---|---|
+| high | 2 | 1 | 1 | yes | 19.0 ms |
+| medium | 1.5 | .6 | .9 | yes | 11.6 ms |
+| low | 1 | .35 | .8 | no | 5.4 ms |
+
+\*Measured on an Apple M1 at 1440×900, forced sync.
+
+- **Auto-selection:** software GL → low; coarse pointer with screen < 820 → low; ≤ 4 cores or ≤ 4 GB → medium; otherwise high.
+- **Runtime step-down:** if explore-mode fps stays under 36 for 4 s, the engine first caps DPR at 1, then drops post-fx.
+
+**QA switches** (any build):
+- `?quality=high|medium|low`
+- `?webgl=off` (forces the static fallback; no engine download)
+
+In dev, `window.__valley` exposes the engine for console testing, e.g. forcing a context loss via the `WEBGL_lose_context` extension.
+
+**Embedded preview panes** may report `document.hidden` while on screen. The rAF loop therefore doesn't trust `document.hidden`; only the software-GL timer loop pauses on it.
+
 ## Content rules (hard)
 
 **Facts.**

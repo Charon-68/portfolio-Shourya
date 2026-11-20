@@ -3,8 +3,8 @@
  * so contrast and texture are judged in real conditions. Open /specimen.html in dev.
  * Content here uses real resume facts only; diagrams are style tests, not final.
  */
-import { useEffect, useRef, useState } from 'react';
-import { ValleyEngine } from '@/engine/ValleyEngine';
+import { useEffect, useState } from 'react';
+import { useValley } from '@/scene/useValley';
 import { ArrowLink } from '@/components/ui/ArrowLink';
 import { Button } from '@/components/ui/Button';
 import { Figure } from '@/components/ui/Figure';
@@ -33,18 +33,10 @@ const inks = [
   { name: 'ink-4', v: '0.34', use: 'decorative only' },
 ];
 
-function useValleyBackdrop(ref: React.RefObject<HTMLDivElement | null>) {
-  useEffect(() => {
-    if (!ref.current) return;
-    let engine: ValleyEngine | null = null;
-    try {
-      engine = new ValleyEngine(ref.current, () => {}, () => {});
-      engine.startHoverTransition(); // content-mode feel: slowed flight, muffled
-    } catch (err) {
-      console.warn('[specimen] WebGL unavailable', err);
-    }
-    return () => engine?.dispose();
-  }, [ref]);
+/** Specimen reads as content: slowed flight, wheel scrolls the page, 30 fps. */
+function useContentMode() {
+  const { setMode } = useValley();
+  useEffect(() => setMode('content'), [setMode]);
 }
 
 /** Cross-fades opener → reading scrim over the first 60% of a viewport of scroll. Writes a CSS var; no re-renders. */
@@ -107,14 +99,12 @@ function GraphRagStyleTest() {
 }
 
 export function Specimen() {
-  const valleyRef = useRef<HTMLDivElement>(null);
   const [replay, setReplay] = useState(0);
-  useValleyBackdrop(valleyRef);
+  useContentMode();
   useScrimProgress();
 
   return (
     <>
-      <div id="specimen-valley" ref={valleyRef} aria-hidden="true" />
       <div className="specimen-scrim" aria-hidden="true" />
 
       <main className="page relative z-[3] py-16 md:py-24">
