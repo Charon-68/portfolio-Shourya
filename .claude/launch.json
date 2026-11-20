@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "fernhollow",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "--port=3000", "--host=127.0.0.1", "--config", "fernhollow/vite.config.ts", "fernhollow"],
+      "port": 3000
+    }
+  ]
+}
