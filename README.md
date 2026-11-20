@@ -13,7 +13,7 @@ npm run preview    # serve dist/ on :4173
 
 ## Live
 
-**https://shouryasaxena.vercel.app** (source: github.com/Charon-68/portfolio-Shourya). Pushes to `main` deploy automatically once the repo is connected to the Vercel project; otherwise run `npx vercel deploy --prod`.
+**https://shouryasaxena.vercel.app** (source: github.com/Charon-68/portfolio-Shourya). Pushes to `main` deploy to production automatically (Vercel Git integration); other branches get preview URLs.
 
 ## Deploying to Vercel
 

@@ -5,7 +5,7 @@ The approved plan is in `docs/BLUEPRINT.md`. Direction **A, "Nocturne"**, was ap
 
 ## Live site
 - https://shouryasaxena.vercel.app (Vercel project `shouryasaxena`, team `shouryasaxena002-8509s-projects`).
-- Deploy: `npx vercel deploy --prod` from the repo root (the project is linked via `.vercel/`, which is gitignored).
+- Deploy: push to `main` on github.com/Charon-68/portfolio-Shourya. The Vercel Git integration builds production automatically; other branches get preview URLs. `npx vercel deploy --prod` still works for a manual deploy.
 
 ## Commands
 - `npm run dev` serves on http://127.0.0.1:3000. The Browser-pane launch config is "dev" in `.claude/launch.json`.
