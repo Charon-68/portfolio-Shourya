@@ -16,11 +16,14 @@ export const profile = {
   degree: 'B.Tech, Mechanical Engineering',
   minor: 'Minor in Computer Science and Engineering',
 
+  /** Public site (CONTENT-TODO C15). */
+  siteUrl: 'https://shouryasaxena.vercel.app',
+
   links: {
-    email: { href: null, todo: 'C1' } as MaybeLink,
-    linkedin: { href: null, todo: 'C2' } as MaybeLink,
-    github: { href: null, todo: 'C3' } as MaybeLink,
+    email: { href: 'mailto:24b2222@iitb.ac.in', todo: 'C1' } as MaybeLink,
+    linkedin: { href: 'https://www.linkedin.com/in/shourya-saxena-490b183b8/', todo: 'C2' } as MaybeLink,
+    github: { href: 'https://github.com/Charon-68', todo: 'C3' } as MaybeLink,
     /** Must be the redacted PDF (no DOB / gender / roll number). */
-    resume: { href: null, todo: 'C4' } as MaybeLink,
+    resume: { href: '/Shourya-Saxena-Resume.pdf', todo: 'C4' } as MaybeLink,
   },
 } as const;

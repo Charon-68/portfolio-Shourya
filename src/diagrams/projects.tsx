@@ -1,6 +1,6 @@
 /**
  * Architecture diagrams for flagship case studies. Every node names a component from the
- * resume; the drawn data flow is a best reading pending Shourya's confirmation (CONTENT-TODO C16).
+ * resume; the drawn data flow was confirmed by Shourya (2026-11-20).
  * Authored at 960 units wide (see DESIGN-SYSTEM §Diagrams). Accent = the critical path.
  */
 import type { DiagramId } from '@/content/projects';

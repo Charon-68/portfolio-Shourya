@@ -58,6 +58,8 @@ export type Project = {
 };
 
 const noLinks = (): Project['links'] => ({ repo: { href: null, todo: 'C5' }, demo: { href: null, todo: 'C5' } });
+/** Public repo on github.com/Charon-68 (matched to the project, 2026-11-20); no live demo known. */
+const repo = (href: string): Project['links'] => ({ repo: { href, todo: 'C5' }, demo: { href: null, todo: 'C5' } });
 
 export const projects: Project[] = [
   // ───────────────────────────── Flagship ─────────────────────────────
@@ -107,13 +109,13 @@ export const projects: Project[] = [
       { group: 'Generation', items: ['LangChain', 'Ollama', 'Qwen3-8B'] },
     ],
     metrics: [
-      { value: '0.80', label: 'Recall@5', context: { todo: 'C6' } },
-      { value: '1.00', label: 'MRR', context: { todo: 'C6' } },
+      { value: '0.80', label: 'Recall@5' },
+      { value: '1.00', label: 'MRR' },
       { value: '5.5s', label: 'End-to-end query latency' },
       { value: '11.5K', label: 'Legal contract chunks indexed' },
     ],
     links: noLinks(),
-    todos: ['C5', 'C6', 'C16'],
+    todos: ['C5'],
   },
   {
     slug: 'vision-meets-transformers',
@@ -170,8 +172,8 @@ export const projects: Project[] = [
       { value: '49%', label: 'Loss degradation without residual connections' },
       { value: '67.5%', label: 'ViT validation accuracy on CIFAR-10' },
     ],
-    links: noLinks(),
-    todos: ['C5', 'C16'],
+    links: repo('https://github.com/Charon-68/SOC_MultiModal_Transformer_24b2222'),
+    todos: ['C5'],
   },
   {
     slug: 'traffic-analytics-mot',
@@ -218,7 +220,7 @@ export const projects: Project[] = [
     metrics: [],
     resultsNote: 'Real-time inference through the deployed dashboard.',
     links: noLinks(),
-    todos: ['C5', 'C16', 'C18'],
+    todos: ['C5', 'C18'],
   },
   {
     slug: 'coding-duel-system',
@@ -268,8 +270,8 @@ export const projects: Project[] = [
     ],
     metrics: [{ value: '16', label: 'Tables in the PostgreSQL schema' }],
     resultsNote: 'Secure, isolated evaluation, with verdicts streamed live and ELO rankings managed in PostgreSQL.',
-    links: noLinks(),
-    todos: ['C5', 'C16'],
+    links: repo('https://github.com/Charon-68/CodeDuel'),
+    todos: ['C5'],
   },
   {
     slug: 'deep-rl-trading',
@@ -310,15 +312,15 @@ export const projects: Project[] = [
       { group: 'Evaluation', items: ['Grid search', 'Backtesting', 'Sharpe ratio', 'Max drawdown'] },
     ],
     metrics: [
-      { value: '49.4%', label: 'Return', context: { todo: 'C7' } },
-      { value: '0.66', label: 'Sharpe ratio', context: { todo: 'C7' } },
+      { value: '49.4%', label: 'Return' },
+      { value: '0.66', label: 'Sharpe ratio' },
       { value: '19.4%', label: 'Max drawdown · before feature engineering', tone: 'before' },
       { value: '18.2%', label: 'Max drawdown · after' },
       { value: '+12.3%', label: 'Over Buy-and-Hold' },
       { value: '+38.7%', label: 'Over Moving Average Crossover' },
     ],
-    links: noLinks(),
-    todos: ['C5', 'C7', 'C16'],
+    links: repo('https://github.com/Charon-68/DeepRL-StockTrading'),
+    todos: ['C5'],
   },
 
   // ───────────────────────────── Selected ─────────────────────────────
@@ -398,7 +400,7 @@ export const projects: Project[] = [
     ],
     metrics: [],
     resultsNote: 'Evaluated with Recall@K, MRR and MAP.',
-    links: noLinks(),
+    links: repo('https://github.com/Charon-68/NLP_Bootcamp'),
     todos: ['C5', 'C19'],
   },
   {
@@ -437,11 +439,11 @@ export const projects: Project[] = [
     ],
     metrics: [
       { value: '0.973', label: 'R² on holdout data' },
-      { value: '26 → 16 / 7', label: 'Features after VIF + SHAP (NC / C)', context: { todo: 'C9' } },
+      { value: '26 → 16 / 7', label: 'Features after VIF + SHAP (NC / C)' },
       { value: '5-fold', label: 'Cross-validation' },
     ],
-    links: noLinks(),
-    todos: ['C5', 'C9'],
+    links: repo('https://github.com/Charon-68/fatigue-strength-predictor'),
+    todos: ['C5'],
   },
   {
     slug: 'ai-image-forensics',
@@ -477,13 +479,13 @@ export const projects: Project[] = [
       { group: 'Serving', items: ['Flask', 'pytest'] },
     ],
     metrics: [
-      { value: '0.71', label: 'OOD AUROC · before', tone: 'before', context: { todo: 'C8' } },
-      { value: '0.90', label: 'OOD AUROC · after', context: { todo: 'C8' } },
+      { value: '0.71', label: 'OOD AUROC · before', tone: 'before' },
+      { value: '0.90', label: 'OOD AUROC · after' },
       { value: '0.87', label: 'AUROC under JPEG-50 compression' },
       { value: '1,700+', label: 'Images from 10 generative models' },
     ],
-    links: noLinks(),
-    todos: ['C5', 'C8'],
+    links: repo('https://github.com/Charon-68/Cross-Generator-AI-Image-Forensics-'),
+    todos: ['C5'],
   },
 
   // ─────────────────────────── In the field ───────────────────────────

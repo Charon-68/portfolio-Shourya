@@ -1,6 +1,6 @@
 /**
  * About, achievements, certifications and Beyond Code. Source: Shourya-Resume.pdf.
- * The bio is first-person prose that only restates resume facts (CONTENT-TODO C20: Shourya to approve the voice).
+ * The bio is first-person prose that only restates resume facts (approved by Shourya, 2026-11-20).
  */
 
 export const bio: string[] = [

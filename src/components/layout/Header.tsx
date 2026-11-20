@@ -48,8 +48,8 @@ export function Header({ visible, view, activeChapter, menuOpen, onHome, onChapt
           {profile.name}
         </a>
 
-        <nav aria-label="Main" className="pointer-events-auto hidden items-center gap-8 md:flex lg:gap-10">
-          <ul className="flex items-center gap-6 lg:gap-8">
+        <nav aria-label="Main" className="pointer-events-auto hidden items-center gap-5 md:flex lg:gap-10">
+          <ul className="flex items-center gap-5 lg:gap-8">
             {chapters.map((c) => {
               const active = view === 'journal' && activeChapter === c.id;
               return (

@@ -10,8 +10,8 @@ type Row = { label: string; link: MaybeLink; display?: (href: string) => string;
 
 const rows: Row[] = [
   { label: 'Email', link: profile.links.email, display: (h) => h.replace(/^mailto:/, '') },
-  { label: 'LinkedIn', link: profile.links.linkedin, display: (h) => h.replace(/^https?:\/\/(www\.)?/, ''), external: true },
-  { label: 'GitHub', link: profile.links.github, display: (h) => h.replace(/^https?:\/\/(www\.)?/, ''), external: true },
+  { label: 'LinkedIn', link: profile.links.linkedin, display: () => profile.name, external: true },
+  { label: 'GitHub', link: profile.links.github, display: (h) => h.replace(/^https?:\/\/(www\.)?github\.com\//, ''), external: true },
   { label: 'Resume', link: profile.links.resume, display: () => 'Download PDF', external: true },
 ];
 
@@ -28,7 +28,8 @@ export function Contact({ onHome }: { onHome: () => void }) {
                 <a
                   href={r.link.href}
                   {...(r.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                  className="group/c inline-flex w-fit items-baseline gap-3 font-display text-display-s uppercase text-cream transition-colors hover:text-pollen"
+                  // Contact details keep their real case (emails, handles) — no uppercase display style.
+                  className="group/c inline-flex w-fit max-w-full items-baseline gap-3 break-all font-display text-display-s text-cream transition-colors hover:text-pollen"
                 >
                   {r.display ? r.display(r.link.href) : r.link.href}
                   <span aria-hidden="true" className="transition-transform duration-[var(--dur-base)] ease-out-expo group-hover/c:translate-x-1">

@@ -22,7 +22,6 @@ function Bio() {
             {p}
           </p>
         ))}
-        <TodoMark id="C20">approve the bio’s voice</TodoMark>
       </div>
       <dl className="flex flex-col gap-0 self-start border-t hairline">
         {[
