@@ -64,8 +64,13 @@ The site is live at **https://shouryasaxena.vercel.app** (Vercel project `shoury
 | Security headers | ✅ `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY` and `Permissions-Policy` are present |
 | Live render | ✅ The engine loads (173 KB transferred), the valley renders, and the console is clean |
 
+**PageSpeed Insights** (2026-11-21, mobile: emulated Moto G Power, slow 4G, Lighthouse 13.6):
+- Scores: Performance **93**, Accessibility **100**, Best Practices **100**, SEO **100**.
+- Metrics: FCP 1.5 s, LCP 2.7 s, TBT 0 ms, CLS 0, Speed Index 4.3 s.
+- PageSpeed's test browser most likely has no GPU, so this measures the poster-fallback path. Devices with a GPU also download and run the 3D engine after first paint.
+- The desktop run did not complete in the browser pane; re-run it at pagespeed.web.dev if needed.
+
 Still to do by hand:
-- PageSpeed Insights;
 - a real phone;
 - a LinkedIn link preview (Post Inspector).
 

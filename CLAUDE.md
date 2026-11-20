@@ -3,6 +3,10 @@
 Personal portfolio for Shourya Saxena (B.Tech Mechanical Engineering + CSE minor, IIT Bombay).
 The approved plan is in `docs/BLUEPRINT.md`. Direction **A, "Nocturne"**, was approved on 2026-11-20. Read the blueprint before any significant change.
 
+## Live site
+- https://shouryasaxena.vercel.app (Vercel project `shouryasaxena`, team `shouryasaxena002-8509s-projects`).
+- Deploy: `npx vercel deploy --prod` from the repo root (the project is linked via `.vercel/`, which is gitignored).
+
 ## Commands
 - `npm run dev` serves on http://127.0.0.1:3000. The Browser-pane launch config is "dev" in `.claude/launch.json`.
 - `npm run build` runs `tsc --noEmit` and then `vite build`. It must pass before every commit.
@@ -137,8 +141,8 @@ They run in forward order, so scrolling down flies forward. The engine starts at
 - `history.state.caseDepth` lets "All work" call `history.go(-depth)`.
 - The URL is the source of truth: a single location sync in `App.tsx` handles load, `popstate` and `hashchange`. It is registered in `useLayoutEffect` so it runs before React re-renders for the new URL (see the comment there).
 - Only that sync derives hero vs journal on `/`; the slug effect handles case pages and 404s only.
-- Projects live in `src/content/projects.ts`, and all copy follows the content rules. Diagrams live in `src/diagrams/projects.tsx`; their data flow awaits confirmation (C16).
-- `vercel.json` rewrites every route to `index.html`.
+- Projects live in `src/content/projects.ts`, and all copy follows the content rules. Diagrams live in `src/diagrams/projects.tsx`; their data flow was confirmed by Shourya (C16, 2026-11-20).
+- `vercel.json`: `cleanUrls` serves the prerendered `work/<slug>.html` at `/work/<slug>`; every other route is rewritten to `index.html`, and unknown `/work/*` paths fall to `404.html` (which still boots the app's 404).
 
 **Chapters (M7).**
 - `src/content/experience.ts` holds roles and timeline dates; Present = `TIMELINE_NOW`, which must be updated as time passes.
@@ -149,9 +153,9 @@ They run in forward order, so scrolling down flies forward. The engine starts at
 **SEO, social and performance (M8).**
 
 *Build plugins* (`config/plugins.ts`):
-- write `dist/work/<slug>/index.html` with per-route title, description, OG and Twitter tags, plus a `<noscript>` summary;
+- write `dist/work/<slug>.html` with per-route title, description, OG and Twitter tags, plus a `<noscript>` summary;
 - write `robots.txt`;
-- write `sitemap.xml` and canonical URLs only when `SITE_URL` is set at build time. That needs the domain (C15), e.g. `SITE_URL=https://example.com npm run build`.
+- write `sitemap.xml` and canonical URLs only when `SITE_URL` is set at build time. The Vercel build command sets `SITE_URL=https://shouryasaxena.vercel.app`.
 
 *Poster and OG images*:
 - `public/poster.webp` (no-WebGL fallback) and `public/og.jpg` (1200×630) were captured from the live engine at `HOME_WAYPOINT`.
