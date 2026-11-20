@@ -10,6 +10,7 @@ import { forwardRef, lazy, Suspense, useCallback, useEffect, useImperativeHandle
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { chapters, type ChapterId } from '@/content/chapters';
 import { cx } from '@/lib/cx';
+import { nextFrameOrTimeout } from '@/lib/frame';
 import { useScrollIntent } from '@/lib/useScrollIntent';
 
 export type JournalHandle = {
@@ -97,15 +98,19 @@ export const Journal = forwardRef<JournalHandle, JournalProps>(function Journal(
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller || !open) return;
-    let raf = 0;
+    let cancel: (() => void) | null = null;
     const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(() => ((raf = 0), measure()));
+      if (!cancel)
+        cancel = nextFrameOrTimeout(() => {
+          cancel = null;
+          measure();
+        });
     };
     measure();
     scroller.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     return () => {
-      cancelAnimationFrame(raf);
+      cancel?.();
       scroller.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
@@ -187,10 +192,17 @@ export const Journal = forwardRef<JournalHandle, JournalProps>(function Journal(
                   data-opener
                   className={cx(
                     // Openers sit over the light scrim → same soft halo as the hero.
-                    'hero-legible flex flex-col justify-end pb-[12svh] pt-[calc(var(--header-h)+4rem)]',
-                    isContact ? 'min-h-[100svh] justify-center pb-0' : 'min-h-[92svh]',
+                    'hero-legible relative isolate flex min-h-[100svh] flex-col justify-end pb-[14svh] pt-[calc(var(--header-h)+4rem)]',
+                    isContact && 'justify-center pb-[8svh]',
                   )}
                 >
+                  {isContact && (
+                    // The meadow is fully open behind Contact: anchor a soft dark pool behind the text column.
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -inset-x-[var(--gutter)] inset-y-0 -z-10 bg-[radial-gradient(55%_50%_at_28%_52%,rgb(4_7_5/0.62)_0%,rgb(4_7_5/0)_100%)]"
+                    />
+                  )}
                   <SectionHeading index={c.index} eyebrow={c.label} id={`${c.id}-title`} title={c.title} lead={c.lead} tone="opener" />
                   {isContact && <div className="mt-12">{body('contact')}</div>}
                 </div>

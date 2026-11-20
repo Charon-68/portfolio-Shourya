@@ -166,6 +166,10 @@ They run in forward order, so scrolling down flies forward. The engine starts at
 - The Performance score (~60–70) is dominated by software compositing and WebGL in a GPU-less headless browser; don't chase it there.
 - Re-measure on real hardware or with PageSpeed Insights after deploy.
 
+**Frames.** Never schedule state-critical work on bare `requestAnimationFrame`. Occluded windows and embedded panes can report themselves visible while firing no frames. Use `nextFrameOrTimeout` from `src/lib/frame.ts`; the engine's `nextFrame` follows the same pattern.
+
+**QA switches:** `?quality=…`, `?webgl=off`, `?motion=reduced`. Full QA results are in `docs/QA.md`.
+
 **Embedded preview panes** may report `document.hidden` while on screen. The rAF loop therefore doesn't trust `document.hidden`; only the software-GL timer loop pauses on it.
 
 ## Content rules (hard)

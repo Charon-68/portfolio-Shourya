@@ -36,7 +36,7 @@ export function Figure({ number, title, caption, children, className }: FigurePr
         <Corner className="bottom-0 right-0 border-b border-r" />
         {children}
       </div>
-      {caption && <figcaption className="measure text-small ink-3">{caption}</figcaption>}
+      {caption && <figcaption className="measure text-small ink-2">{caption}</figcaption>}
     </figure>
   );
 }

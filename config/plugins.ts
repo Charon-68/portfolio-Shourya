@@ -4,7 +4,7 @@
  * - devCapture: DEV ONLY. POST /__capture?name=poster.png with a data-URL body writes the image
  *   into design/captures/ (gitignored scratch). Used to capture the poster / OG image straight
  *   from the live engine, then optimised into public/ by scripts/optimise-captures.sh.
- * - prerenderRoutes: writes dist/work/<slug>/index.html (and a 404.html) with per-route
+ * - prerenderRoutes: writes dist/work/<slug>.html (and a 404.html) with per-route
  *   <title>, description, Open Graph/Twitter tags, canonical (when SITE_URL is set) and a
  *   <noscript> summary — so link previews and no-JS crawlers see real content.
  * - sitemap: writes robots.txt always, sitemap.xml only when SITE_URL is known (CONTENT-TODO C15).
@@ -112,9 +112,10 @@ export function prerenderRoutes(): Plugin {
             .map((c) => `<li>${esc(c)}</li>`)
             .join('')}</ul><p><a href="/#work">All work</a></p></main>`,
         };
-        const dir = path.join(dist, 'work', p.slug);
+        // work/<slug>.html + vercel.json cleanUrls → served at /work/<slug> (no trailing slash).
+        const dir = path.join(dist, 'work');
         fs.mkdirSync(dir, { recursive: true });
-        fs.writeFileSync(path.join(dir, 'index.html'), withMeta(base, m, siteUrl));
+        fs.writeFileSync(path.join(dir, `${p.slug}.html`), withMeta(base, m, siteUrl));
       }
 
       fs.writeFileSync(

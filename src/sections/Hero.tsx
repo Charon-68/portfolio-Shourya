@@ -108,7 +108,7 @@ export function Hero({ active, intent, onExplore }: HeroProps) {
         transition={{ duration: dur.slow, delay: shown && !reduce ? 0.9 : 0 }}
       >
         <Telemetry className="hidden sm:block" />
-        <div className="flex flex-col items-end gap-2 max-sm:mx-auto max-sm:items-center">
+        <div className="ml-auto flex flex-col items-end gap-2 max-sm:mx-auto max-sm:items-center">
           <p className="label ink-2 flex items-center gap-3">
             {intent > 0.12 || status === 'fallback' ? (
               <span className="ink-1">Keep scrolling to read ↓</span>

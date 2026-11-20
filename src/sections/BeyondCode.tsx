@@ -1,10 +1,9 @@
 /**
- * Beyond Code — deliberately looser than the technical chapters: a staggered two-column
+ * Beyond Code — deliberately looser than the technical chapters: a two-column
  * layout, big figures, and small line glyphs drawn in the same plate style as the diagrams.
  */
 import type { JSX } from 'react';
 import { beyond, type BeyondItem } from '@/content/about';
-import { cx } from '@/lib/cx';
 
 const glyphs: Record<BeyondItem['id'], JSX.Element> = {
   // Three people connected — mentoring
@@ -47,8 +46,8 @@ const glyphs: Record<BeyondItem['id'], JSX.Element> = {
 export function BeyondCode() {
   return (
     <ul className="grid gap-x-16 gap-y-16 md:grid-cols-2">
-      {beyond.map((b, i) => (
-        <li key={b.id} className={cx('flex flex-col gap-5 border-t hairline pt-6', i % 2 === 1 && 'md:mt-24')}>
+      {beyond.map((b) => (
+        <li key={b.id} className="flex flex-col gap-5 border-t hairline pt-6">
           <svg
             viewBox="0 0 120 60"
             aria-hidden="true"

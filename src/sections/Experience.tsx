@@ -63,7 +63,7 @@ function Timeline({ active, setActive }: { active: string | null; setActive: (id
     >
       <div className="relative min-w-[640px] pb-2" role="group" aria-label={`Timeline from ${formatMonth(TIMELINE_START)} to now`}>
         {/* Axis */}
-        <div className="relative ml-[9.5rem] h-8 border-b hairline">
+        <div className="relative ml-[11rem] h-8 border-b hairline">
           {years.map(({ y, i }) => (
             <span key={y} className="label ink-3 absolute bottom-2 tabular" style={{ left: pct(i) }}>
               {y}
@@ -79,13 +79,13 @@ function Timeline({ active, setActive }: { active: string | null; setActive: (id
 
         <div className="relative">
           {/* "Now" rule through all lanes */}
-          <span aria-hidden="true" className="absolute inset-y-0 w-px bg-pollen/50" style={{ left: `calc(9.5rem + (100% - 9.5rem) * ${NOW / TOTAL})` }} />
+          <span aria-hidden="true" className="absolute inset-y-0 w-px bg-pollen/50" style={{ left: `calc(11rem + (100% - 11rem) * ${NOW / TOTAL})` }} />
 
           {lanes.map((lane) => {
             const entries = experience.filter((e) => e.lane === lane.id).sort((a, b) => a.start.localeCompare(b.start));
             return (
               <div key={lane.id} className="flex border-b hairline py-4">
-                <p className="label ink-3 w-[9.5rem] shrink-0 pr-4 pt-1 leading-snug">{lane.label}</p>
+                <p className="label ink-3 w-[11rem] shrink-0 pr-4 pt-1 leading-snug">{lane.label}</p>
                 <ul className="relative flex-1">
                   {entries.map((e) => {
                     const s = monthIndex(e.start);
@@ -115,12 +115,13 @@ function Timeline({ active, setActive }: { active: string | null; setActive: (id
                           <span
                             aria-hidden="true"
                             className={cx(
-                              'block h-1.5 w-full transition-colors duration-[var(--dur-fast)]',
+                              'relative block h-1.5 w-full transition-colors duration-[var(--dur-fast)]',
                               on ? 'bg-pollen' : 'bg-cream/70 group-hover/bar:bg-cream',
-                              // Ongoing roles fade into "now".
-                              !e.end && '[mask-image:linear-gradient(90deg,#000_75%,transparent)]',
                             )}
-                          />
+                          >
+                            {/* Ongoing roles: a pollen cap where they meet "now". */}
+                            {!e.end && <span className="absolute -right-px -top-1 h-3.5 w-0.5 bg-pollen" />}
+                          </span>
                         </button>
                       </li>
                     );
@@ -222,7 +223,7 @@ export function Experience() {
         <p id="exp-incoming" className="label text-pollen md:w-[13rem]">
           Incoming
         </p>
-        <p className="text-lead ink-1">
+        <p className="font-display text-display-s uppercase">
           {incoming.role} · {incoming.org}
         </p>
       </section>

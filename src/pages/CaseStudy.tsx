@@ -13,6 +13,7 @@ import { TodoMark } from '@/components/ui/TodoMark';
 import { projects, type Project } from '@/content/projects';
 import { ProjectDiagram } from '@/diagrams/projects';
 import { cx } from '@/lib/cx';
+import { nextFrameOrTimeout } from '@/lib/frame';
 import { Link } from '@/lib/router';
 
 const SECTIONS = [
@@ -83,9 +84,9 @@ export function CaseStudy({ project, onBack }: CaseStudyProps) {
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
-    let raf = 0;
+    let cancel: (() => void) | null = null;
     const measure = () => {
-      raf = 0;
+      cancel = null;
       const vh = scroller.clientHeight;
       const opener = scroller.querySelector<HTMLElement>('[data-opener]');
       if (opener && scrimRef.current) {
@@ -100,13 +101,13 @@ export function CaseStudy({ project, onBack }: CaseStudyProps) {
       setCurrent((c) => (c === found ? c : found));
     };
     const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(measure);
+      if (!cancel) cancel = nextFrameOrTimeout(measure);
     };
     measure();
     scroller.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     return () => {
-      cancelAnimationFrame(raf);
+      cancel?.();
       scroller.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
@@ -209,9 +210,9 @@ export function CaseStudy({ project, onBack }: CaseStudyProps) {
               <Block id="contribution" label="03 — My contribution">
                 <ol className="flex flex-col gap-6">
                   {project.contribution.map((c, i) => (
-                    <li key={i} className="measure grid grid-cols-[2.5rem_1fr] gap-2">
+                    <li key={i} className="measure grid grid-cols-[1.75rem_1fr] gap-2 md:grid-cols-[2.5rem_1fr]">
                       <span className="label tabular pt-1.5 text-pollen">{String(i + 1).padStart(2, '0')}</span>
-                      <span className="text-lead ink-1">{c}</span>
+                      <span className="ink-1 md:text-lead">{c}</span>
                     </li>
                   ))}
                 </ol>

@@ -62,11 +62,9 @@ function Achievements() {
       <ul className="grid gap-x-10 gap-y-12 sm:grid-cols-2 xl:grid-cols-4">
         {achievements.map((a) => (
           <li key={a.title} className="flex flex-col gap-3 border-t hairline pt-5">
-            <p className="flex items-baseline gap-2">
-              <span className="font-display text-numeral tabular">{a.figure}</span>
-              {a.of && <span className="label ink-3 normal-case tracking-[0.02em]">{a.of}</span>}
-            </p>
-            <h3 className="label text-pollen">{a.title}</h3>
+            <p className="font-display text-numeral uppercase tabular">{a.figure}</p>
+            <p className="label ink-3 -mt-1 min-h-[1.4em]">{a.of ?? '\u00a0'}</p>
+            <h3 className="label min-h-[2.8em] text-pollen">{a.title}</h3>
             <p className="text-small ink-2">{a.detail}</p>
           </li>
         ))}

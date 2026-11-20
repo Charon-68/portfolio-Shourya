@@ -139,7 +139,7 @@ export function DNode({ x, y, w, h = 56, label, sub, tone = 'default', order = 0
         {label}
       </text>
       {sub && (
-        <text x={cx_} y={y + h / 2 + 14} textAnchor="middle" fontSize={10.5} letterSpacing="0.02em" fill="var(--ink-3)">
+        <text x={cx_} y={y + h / 2 + 14} textAnchor="middle" fontSize={11} letterSpacing="0.02em" fill="var(--ink-2)">
           {sub}
         </text>
       )}
@@ -180,8 +180,8 @@ export function DEdge({ d, tone = 'default', order = 0, arrow = true, dashed, la
           x={labelAt.x}
           y={labelAt.y}
           textAnchor="middle"
-          fontSize={10.5}
-          fill="var(--ink-3)"
+          fontSize={11}
+          fill="var(--ink-2)"
           initial={reduce ? false : { opacity: 0 }}
           animate={drawn ? { opacity: 1 } : { opacity: 0 }}
           transition={{ duration: 0.4, delay: order * STEP + 0.4 }}

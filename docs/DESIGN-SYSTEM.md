@@ -26,7 +26,7 @@ Tokens live in `src/styles/tokens.css` (Tailwind v4 `@theme` + `:root`). Base an
 | `ink-3` | .56 | Labels, secondary | 4.5 : 1 |
 | `ink-4` | .34 | Decorative only (separators). **Never text that carries meaning.** | 2.6 : 1 |
 
-\*Worst case means the brightest flower colour in the engine (`#ffdc4d`) sitting directly under the text with the reading scrim at its lightest point (α .80).
+\*Worst case means the brightest flower colour in the engine (`#ffdc4d`) sitting directly under the text with the reading scrim at its lightest point (α .80; it is now .86, so real margins are higher).
 
 ### Scrim
 
@@ -35,7 +35,7 @@ Content sits over the live valley in two stages. The reading scrim fades in over
 - **Opener** (`--scrim-opener`, α .55): chapter openers. The valley stays clearly visible.
   - Only `ink-1` or `pollen` text, at display or lead sizes.
   - Worst case, `ink-1` still reaches 4.6 : 1.
-- **Reading** (`--scrim-reading`, α .80 → .92): dense content.
+- **Reading** (`--scrim-reading`, α .86 → .92): dense content (raised from .80 after the M9 design review so bloom sprites read as texture, not focal points).
 
 No `backdrop-filter` blur: it's expensive over a WebGL canvas, and the plate aesthetic doesn't need it.
 
